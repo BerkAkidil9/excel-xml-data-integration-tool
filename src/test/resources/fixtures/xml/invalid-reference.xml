@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<InvoiceBatch xmlns="urn:berk:excel-xml-integration:invoice:v1" version="1.0">
+  <Parties>
+    <Party><PartyId>SUP-001</PartyId><Role>SUPPLIER</Role><Name>Supplier</Name><Address><City>İstanbul</City><CountryCode>TR</CountryCode></Address></Party>
+  </Parties>
+  <PaymentAccounts>
+    <PaymentAccount><PaymentAccountId>PAY-001</PaymentAccountId><AccountHolderName>Supplier</AccountHolderName><BankName>Bank</BankName><IBAN>TR00TEST000000000000000000</IBAN><CurrencyCode>TRY</CurrencyCode></PaymentAccount>
+  </PaymentAccounts>
+  <Invoices>
+    <Invoice>
+      <InvoiceNumber>INV-001</InvoiceNumber><IssueDate>2026-07-27</IssueDate><CurrencyCode>TRY</CurrencyCode><SupplierPartyId>SUP-001</SupplierPartyId><CustomerPartyId>CUS-MISSING</CustomerPartyId><PaymentAccountId>PAY-001</PaymentAccountId>
+      <Lines><Line><LineNumber>1</LineNumber><Description>Service</Description><Quantity>1</Quantity><UnitCode>C62</UnitCode><UnitPrice>100.00</UnitPrice><TaxRate>20.00</TaxRate><LineNetAmount>100.00</LineNetAmount><LineTaxAmount>20.00</LineTaxAmount></Line></Lines>
+      <Totals><TaxExclusiveAmount>100.00</TaxExclusiveAmount><TaxAmount>20.00</TaxAmount><PayableAmount>120.00</PayableAmount></Totals>
+    </Invoice>
+  </Invoices>
+</InvoiceBatch>

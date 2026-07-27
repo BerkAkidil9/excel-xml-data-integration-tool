@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="urn:berk:excel-xml-integration:invoice:v1"
+           targetNamespace="urn:berk:excel-xml-integration:invoice:v1"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:simpleType name="NonBlankText">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Id40">
+    <xs:restriction base="tns:NonBlankText">
+      <xs:maxLength value="40"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="InvoiceNumberType">
+    <xs:restriction base="tns:NonBlankText">
+      <xs:maxLength value="50"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CurrencyCodeType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{3}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CountryCodeType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{2}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="RoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SUPPLIER"/>
+      <xs:enumeration value="CUSTOMER"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="IbanType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z0-9]{5,34}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="SwiftCodeType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z0-9]{8}([A-Z0-9]{3})?"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="UnitCodeType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z0-9]{1,8}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="NonNegativeMoneyType">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="0.00"/>
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PositiveQuantityType">
+    <xs:restriction base="xs:decimal">
+      <xs:minExclusive value="0"/>
+      <xs:fractionDigits value="4"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="NonNegativeUnitPriceType">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="0"/>
+      <xs:fractionDigits value="4"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="TaxRateType">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="100"/>
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="AddressType">
+    <xs:sequence>
+      <xs:element name="Street" type="xs:string" minOccurs="0"/>
+      <xs:element name="City" type="tns:NonBlankText"/>
+      <xs:element name="PostalCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="CountryCode" type="tns:CountryCodeType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PartyType">
+    <xs:sequence>
+      <xs:element name="PartyId" type="tns:Id40"/>
+      <xs:element name="Role" type="tns:RoleType"/>
+      <xs:element name="Name" type="tns:NonBlankText"/>
+      <xs:element name="TaxNumber" type="xs:string" minOccurs="0"/>
+      <xs:element name="Email" type="xs:string" minOccurs="0"/>
+      <xs:element name="Phone" type="xs:string" minOccurs="0"/>
+      <xs:element name="Address" type="tns:AddressType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PaymentAccountType">
+    <xs:sequence>
+      <xs:element name="PaymentAccountId" type="tns:Id40"/>
+      <xs:element name="AccountHolderName" type="tns:NonBlankText"/>
+      <xs:element name="BankName" type="tns:NonBlankText"/>
+      <xs:element name="IBAN" type="tns:IbanType"/>
+      <xs:element name="SwiftCode" type="tns:SwiftCodeType" minOccurs="0"/>
+      <xs:element name="CurrencyCode" type="tns:CurrencyCodeType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InvoiceLineType">
+    <xs:sequence>
+      <xs:element name="LineNumber" type="xs:positiveInteger"/>
+      <xs:element name="ItemCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="Description" type="tns:NonBlankText"/>
+      <xs:element name="Quantity" type="tns:PositiveQuantityType"/>
+      <xs:element name="UnitCode" type="tns:UnitCodeType"/>
+      <xs:element name="UnitPrice" type="tns:NonNegativeUnitPriceType"/>
+      <xs:element name="TaxRate" type="tns:TaxRateType"/>
+      <xs:element name="LineNetAmount" type="tns:NonNegativeMoneyType"/>
+      <xs:element name="LineTaxAmount" type="tns:NonNegativeMoneyType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InvoiceTotalsType">
+    <xs:sequence>
+      <xs:element name="TaxExclusiveAmount" type="tns:NonNegativeMoneyType"/>
+      <xs:element name="TaxAmount" type="tns:NonNegativeMoneyType"/>
+      <xs:element name="PayableAmount" type="tns:NonNegativeMoneyType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InvoiceType">
+    <xs:sequence>
+      <xs:element name="InvoiceNumber" type="tns:InvoiceNumberType"/>
+      <xs:element name="IssueDate" type="xs:date"/>
+      <xs:element name="DueDate" type="xs:date" minOccurs="0"/>
+      <xs:element name="CurrencyCode" type="tns:CurrencyCodeType"/>
+      <xs:element name="SupplierPartyId" type="tns:Id40"/>
+      <xs:element name="CustomerPartyId" type="tns:Id40"/>
+      <xs:element name="PaymentAccountId" type="tns:Id40"/>
+      <xs:element name="Note" type="xs:string" minOccurs="0"/>
+      <xs:element name="Lines">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Line" type="tns:InvoiceLineType" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Totals" type="tns:InvoiceTotalsType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="InvoiceBatch">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Parties">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Party" type="tns:PartyType" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PaymentAccounts">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="PaymentAccount" type="tns:PaymentAccountType" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Invoices">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Invoice" type="tns:InvoiceType" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" use="required" fixed="1.0"/>
+    </xs:complexType>
+
+    <xs:key name="PartyIdKey">
+      <xs:selector xpath="tns:Parties/tns:Party"/>
+      <xs:field xpath="tns:PartyId"/>
+    </xs:key>
+    <xs:key name="PaymentAccountIdKey">
+      <xs:selector xpath="tns:PaymentAccounts/tns:PaymentAccount"/>
+      <xs:field xpath="tns:PaymentAccountId"/>
+    </xs:key>
+    <xs:key name="InvoiceNumberKey">
+      <xs:selector xpath="tns:Invoices/tns:Invoice"/>
+      <xs:field xpath="tns:InvoiceNumber"/>
+    </xs:key>
+    <xs:keyref name="SupplierPartyRef" refer="tns:PartyIdKey">
+      <xs:selector xpath="tns:Invoices/tns:Invoice"/>
+      <xs:field xpath="tns:SupplierPartyId"/>
+    </xs:keyref>
+    <xs:keyref name="CustomerPartyRef" refer="tns:PartyIdKey">
+      <xs:selector xpath="tns:Invoices/tns:Invoice"/>
+      <xs:field xpath="tns:CustomerPartyId"/>
+    </xs:keyref>
+    <xs:keyref name="PaymentAccountRef" refer="tns:PaymentAccountIdKey">
+      <xs:selector xpath="tns:Invoices/tns:Invoice"/>
+      <xs:field xpath="tns:PaymentAccountId"/>
+    </xs:keyref>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,3 @@
+party_id,party_role,name,tax_number,email,phone,street,city,postal_code,country_code
+SUP-001,SUPPLIER,Example Supplier Ltd.,1234567890,info@supplier.example,+90 212 000 00 00,Teknoloji Cad. No:10,İstanbul,34000,TR
+CUS-001,CUSTOMER,Example Customer A.S.,9876543210,purchasing@customer.example,,İş Merkezi No:25,Ankara,06000,TR

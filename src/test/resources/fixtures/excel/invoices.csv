@@ -1,0 +1,2 @@
+invoice_number,issue_date,due_date,currency_code,supplier_id,customer_id,payment_account_id,note
+INV-2026-0001,2026-07-27,2026-08-26,TRY,SUP-001,CUS-001,PAY-TRY-001,Temmuz ayı yazılım hizmetleri

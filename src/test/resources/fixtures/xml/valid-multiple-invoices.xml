@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<InvoiceBatch xmlns="urn:berk:excel-xml-integration:invoice:v1" version="1.0">
+  <Parties>
+    <Party>
+      <PartyId>SUP-001</PartyId>
+      <Role>SUPPLIER</Role>
+      <Name>Example Supplier Ltd.</Name>
+      <TaxNumber>1234567890</TaxNumber>
+      <Email>info@supplier.example</Email>
+      <Phone>+90 212 000 00 00</Phone>
+      <Address>
+        <Street>Teknoloji Cad. No:10</Street>
+        <City>İstanbul</City>
+        <PostalCode>34000</PostalCode>
+        <CountryCode>TR</CountryCode>
+      </Address>
+    </Party>
+    <Party>
+      <PartyId>CUS-001</PartyId>
+      <Role>CUSTOMER</Role>
+      <Name>Example Customer A.S.</Name>
+      <TaxNumber>9876543210</TaxNumber>
+      <Email>purchasing@customer.example</Email>
+      <Address>
+        <Street>İş Merkezi No:25</Street>
+        <City>Ankara</City>
+        <PostalCode>06000</PostalCode>
+        <CountryCode>TR</CountryCode>
+      </Address>
+    </Party>
+    <Party>
+      <PartyId>CUS-002</PartyId>
+      <Role>CUSTOMER</Role>
+      <Name>Example Europe GmbH</Name>
+      <Email>billing@third-party.example</Email>
+      <Address>
+        <City>Berlin</City>
+        <PostalCode>10115</PostalCode>
+        <CountryCode>DE</CountryCode>
+      </Address>
+    </Party>
+  </Parties>
+  <PaymentAccounts>
+    <PaymentAccount>
+      <PaymentAccountId>PAY-TRY-001</PaymentAccountId>
+      <AccountHolderName>Example Supplier Ltd.</AccountHolderName>
+      <BankName>Example Bank</BankName>
+      <IBAN>TR00TEST000000000000000000</IBAN>
+      <SwiftCode>TESTTRIS</SwiftCode>
+      <CurrencyCode>TRY</CurrencyCode>
+    </PaymentAccount>
+    <PaymentAccount>
+      <PaymentAccountId>PAY-EUR-001</PaymentAccountId>
+      <AccountHolderName>Example Supplier Ltd.</AccountHolderName>
+      <BankName>Example International Bank</BankName>
+      <IBAN>DE00TEST00000000000000</IBAN>
+      <SwiftCode>TESTDEFF</SwiftCode>
+      <CurrencyCode>EUR</CurrencyCode>
+    </PaymentAccount>
+  </PaymentAccounts>
+  <Invoices>
+    <Invoice>
+      <InvoiceNumber>INV-2026-0001</InvoiceNumber>
+      <IssueDate>2026-07-27</IssueDate>
+      <DueDate>2026-08-26</DueDate>
+      <CurrencyCode>TRY</CurrencyCode>
+      <SupplierPartyId>SUP-001</SupplierPartyId>
+      <CustomerPartyId>CUS-001</CustomerPartyId>
+      <PaymentAccountId>PAY-TRY-001</PaymentAccountId>
+      <Note>Temmuz ayı yazılım hizmetleri</Note>
+      <Lines>
+        <Line>
+          <LineNumber>1</LineNumber>
+          <ItemCode>SRV-DEV</ItemCode>
+          <Description>Yazılım geliştirme hizmeti</Description>
+          <Quantity>2</Quantity>
+          <UnitCode>C62</UnitCode>
+          <UnitPrice>1250.00</UnitPrice>
+          <TaxRate>20.00</TaxRate>
+          <LineNetAmount>2500.00</LineNetAmount>
+          <LineTaxAmount>500.00</LineTaxAmount>
+        </Line>
+        <Line>
+          <LineNumber>2</LineNumber>
+          <ItemCode>SRV-SUPPORT</ItemCode>
+          <Description>Teknik destek hizmeti</Description>
+          <Quantity>3</Quantity>
+          <UnitCode>HUR</UnitCode>
+          <UnitPrice>400.00</UnitPrice>
+          <TaxRate>20.00</TaxRate>
+          <LineNetAmount>1200.00</LineNetAmount>
+          <LineTaxAmount>240.00</LineTaxAmount>
+        </Line>
+      </Lines>
+      <Totals>
+        <TaxExclusiveAmount>3700.00</TaxExclusiveAmount>
+        <TaxAmount>740.00</TaxAmount>
+        <PayableAmount>4440.00</PayableAmount>
+      </Totals>
+    </Invoice>
+    <Invoice>
+      <InvoiceNumber>INV-2026-0002</InvoiceNumber>
+      <IssueDate>2026-07-28</IssueDate>
+      <CurrencyCode>EUR</CurrencyCode>
+      <SupplierPartyId>SUP-001</SupplierPartyId>
+      <CustomerPartyId>CUS-002</CustomerPartyId>
+      <PaymentAccountId>PAY-EUR-001</PaymentAccountId>
+      <Lines>
+        <Line>
+          <LineNumber>1</LineNumber>
+          <Description>Data integration consultancy</Description>
+          <Quantity>1</Quantity>
+          <UnitCode>C62</UnitCode>
+          <UnitPrice>1000.00</UnitPrice>
+          <TaxRate>0.00</TaxRate>
+          <LineNetAmount>1000.00</LineNetAmount>
+          <LineTaxAmount>0.00</LineTaxAmount>
+        </Line>
+      </Lines>
+      <Totals>
+        <TaxExclusiveAmount>1000.00</TaxExclusiveAmount>
+        <TaxAmount>0.00</TaxAmount>
+        <PayableAmount>1000.00</PayableAmount>
+      </Totals>
+    </Invoice>
+  </Invoices>
+</InvoiceBatch>

@@ -1,0 +1,2 @@
+payment_account_id,account_holder_name,bank_name,iban,swift_code,currency_code
+PAY-TRY-001,Example Supplier Ltd.,Example Bank,TR00TEST000000000000000000,TESTTRIS,TRY

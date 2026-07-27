@@ -1,0 +1,15 @@
+target/
+*.class
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+out/
+AGENTS.md
+docs/development/prompts/
