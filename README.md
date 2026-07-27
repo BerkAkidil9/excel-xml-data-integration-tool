@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phases 1, 2, and 3 are implemented:
+Phases 1, 2, 3, and 4 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -19,9 +19,10 @@ Phases 1, 2, and 3 are implemented:
 - Excel `.xlsx` contract validation for required sheets and exact headers.
 - Excel `.xlsx` reader using Apache POI, including intentional cell-type parsing, Excel date cells, ISO date text, blank-row handling, and structured source locations.
 - XML DTOs, explicit domain-to-XML mapping, JAXB XML writer, and secure XSD validation for generated XML.
-- JUnit tests for calculation, validation, Excel reader, and XML writer behavior.
+- Secure XML reader using JAXB, XSD validation, XML-to-domain mapping, and business consistency validation for imported totals.
+- JUnit tests for calculation, validation, Excel reader, XML writer, and XML reader behavior.
 
-Excel writing, XML reading, standalone XML validation service, conversion orchestration, and Swing UI are planned but not implemented yet.
+Excel writing, conversion orchestration, and Swing UI are planned but not implemented yet.
 
 ## Features
 
@@ -31,14 +32,12 @@ Implemented:
 - Monetary calculation under `com.berk.dataintegration.calculation`.
 - Structured validation under `com.berk.dataintegration.validation`.
 - Excel workbook contract validation and reading under `com.berk.dataintegration.excel`.
-- XML writing under `com.berk.dataintegration.xml`.
-- JUnit test coverage for the current domain, calculation, validation, Excel reader, and XML writer behavior.
+- XML reading and writing under `com.berk.dataintegration.xml`.
+- JUnit test coverage for the current domain, calculation, validation, Excel reader, XML writer, and XML reader behavior.
 
 Planned:
 
 - Excel `.xlsx` writer using Apache POI.
-- XML reader using Jakarta XML Binding.
-- Standalone XML validation service for `invoice-data-v1`.
 - Bidirectional conversion services.
 - Swing desktop UI.
 
@@ -122,7 +121,7 @@ Run the full verification build:
 
 ## Run
 
-There is no runnable desktop application, CLI, or conversion service yet. The current project state is a tested domain, calculation, validation, Excel reader, and XML writer foundation.
+There is no runnable desktop application, CLI, or conversion service yet. The current project state is a tested domain, calculation, validation, Excel reader, XML writer, and XML reader foundation.
 
 ## Project Structure
 
@@ -149,7 +148,7 @@ There is no runnable desktop application, CLI, or conversion service yet. The cu
 1. Foundation, domain, calculation, and validation: implemented.
 2. Excel contract validation and reader: implemented.
 3. XML DTOs, XSD validation, and writer: implemented.
-4. XML reader and domain mapping: planned.
+4. XML reader and domain mapping: implemented.
 5. Excel writer: planned.
 6. Conversion services and round-trip tests: planned.
 7. Structured error reporting improvements: planned.
@@ -163,7 +162,6 @@ See `docs/roadmap.md` for more detail.
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
 - No Excel writer yet.
-- No XML reader or standalone XML validation service yet.
 - No UI or conversion orchestration yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
 

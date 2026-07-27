@@ -18,7 +18,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -59,7 +61,8 @@ public final class ExcelInvoiceReader {
             )));
         }
 
-        try (Workbook workbook = WorkbookFactory.create(path.toFile())) {
+        try (InputStream input = Files.newInputStream(path);
+             Workbook workbook = WorkbookFactory.create(input)) {
             List<ValidationError> errors = new ArrayList<>(contractValidator.validate(workbook, sourceFile));
             if (!errors.isEmpty()) {
                 return new ExcelReadResult(emptyBatch(), errors);

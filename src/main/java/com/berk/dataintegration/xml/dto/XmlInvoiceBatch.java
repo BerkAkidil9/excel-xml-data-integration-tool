@@ -38,6 +38,18 @@ public final class XmlInvoiceBatch {
         this.invoices = invoices;
     }
 
+    public PartiesXml getParties() {
+        return parties;
+    }
+
+    public PaymentAccountsXml getPaymentAccounts() {
+        return paymentAccounts;
+    }
+
+    public InvoicesXml getInvoices() {
+        return invoices;
+    }
+
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {"parties"})
     public static final class PartiesXml {
@@ -49,6 +61,10 @@ public final class XmlInvoiceBatch {
 
         public PartiesXml(List<PartyXml> parties) {
             this.parties = List.copyOf(parties);
+        }
+
+        public List<PartyXml> getParties() {
+            return parties;
         }
     }
 
@@ -64,6 +80,10 @@ public final class XmlInvoiceBatch {
         public PaymentAccountsXml(List<PaymentAccountXml> paymentAccounts) {
             this.paymentAccounts = List.copyOf(paymentAccounts);
         }
+
+        public List<PaymentAccountXml> getPaymentAccounts() {
+            return paymentAccounts;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -77,6 +97,10 @@ public final class XmlInvoiceBatch {
 
         public InvoicesXml(List<InvoiceXml> invoices) {
             this.invoices = List.copyOf(invoices);
+        }
+
+        public List<InvoiceXml> getInvoices() {
+            return invoices;
         }
     }
 
@@ -132,6 +156,34 @@ public final class XmlInvoiceBatch {
             this.phone = phone;
             this.address = address;
         }
+
+        public String getPartyId() {
+            return partyId;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getTaxNumber() {
+            return taxNumber;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public AddressXml getAddress() {
+            return address;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -157,6 +209,22 @@ public final class XmlInvoiceBatch {
             this.city = city;
             this.postalCode = postalCode;
             this.countryCode = countryCode;
+        }
+
+        public String getStreet() {
+            return street;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public String getPostalCode() {
+            return postalCode;
+        }
+
+        public String getCountryCode() {
+            return countryCode;
         }
     }
 
@@ -205,6 +273,30 @@ public final class XmlInvoiceBatch {
             this.iban = iban;
             this.swiftCode = swiftCode;
             this.currencyCode = currencyCode;
+        }
+
+        public String getPaymentAccountId() {
+            return paymentAccountId;
+        }
+
+        public String getAccountHolderName() {
+            return accountHolderName;
+        }
+
+        public String getBankName() {
+            return bankName;
+        }
+
+        public String getIban() {
+            return iban;
+        }
+
+        public String getSwiftCode() {
+            return swiftCode;
+        }
+
+        public String getCurrencyCode() {
+            return currencyCode;
         }
     }
 
@@ -280,6 +372,46 @@ public final class XmlInvoiceBatch {
             this.lines = lines;
             this.totals = totals;
         }
+
+        public String getInvoiceNumber() {
+            return invoiceNumber;
+        }
+
+        public LocalDate getIssueDate() {
+            return issueDate;
+        }
+
+        public LocalDate getDueDate() {
+            return dueDate;
+        }
+
+        public String getCurrencyCode() {
+            return currencyCode;
+        }
+
+        public String getSupplierPartyId() {
+            return supplierPartyId;
+        }
+
+        public String getCustomerPartyId() {
+            return customerPartyId;
+        }
+
+        public String getPaymentAccountId() {
+            return paymentAccountId;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public LinesXml getLines() {
+            return lines;
+        }
+
+        public TotalsXml getTotals() {
+            return totals;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -293,6 +425,10 @@ public final class XmlInvoiceBatch {
 
         public LinesXml(List<LineXml> lines) {
             this.lines = List.copyOf(lines);
+        }
+
+        public List<LineXml> getLines() {
+            return lines;
         }
     }
 
@@ -360,6 +496,42 @@ public final class XmlInvoiceBatch {
             this.lineNetAmount = lineNetAmount;
             this.lineTaxAmount = lineTaxAmount;
         }
+
+        public int getLineNumber() {
+            return lineNumber;
+        }
+
+        public String getItemCode() {
+            return itemCode;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public BigDecimal getQuantity() {
+            return quantity;
+        }
+
+        public String getUnitCode() {
+            return unitCode;
+        }
+
+        public BigDecimal getUnitPrice() {
+            return unitPrice;
+        }
+
+        public BigDecimal getTaxRate() {
+            return taxRate;
+        }
+
+        public BigDecimal getLineNetAmount() {
+            return lineNetAmount;
+        }
+
+        public BigDecimal getLineTaxAmount() {
+            return lineTaxAmount;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -381,6 +553,18 @@ public final class XmlInvoiceBatch {
             this.taxExclusiveAmount = taxExclusiveAmount;
             this.taxAmount = taxAmount;
             this.payableAmount = payableAmount;
+        }
+
+        public BigDecimal getTaxExclusiveAmount() {
+            return taxExclusiveAmount;
+        }
+
+        public BigDecimal getTaxAmount() {
+            return taxAmount;
+        }
+
+        public BigDecimal getPayableAmount() {
+            return payableAmount;
         }
     }
 }
