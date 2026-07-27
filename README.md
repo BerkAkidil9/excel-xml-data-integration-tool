@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phases 1, 2, 3, 4, 5, and 6 are implemented:
+Phases 1, 2, 3, 4, 5, 6, and 8 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -22,9 +22,10 @@ Phases 1, 2, 3, 4, 5, and 6 are implemented:
 - Secure XML reader using JAXB, XSD validation, XML-to-domain mapping, and business consistency validation for imported totals.
 - Excel `.xlsx` writer using Apache POI, including exact sheets/headers, real date cells, numeric decimal cells, header styling, freeze panes, filters, and useful validation lists.
 - Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
-- JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, and conversion behavior.
+- Small Swing UI over the tested conversion services, with direction selection, file choosers, progress/status, counts, and structured error display.
+- JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
-Swing UI is planned but not implemented yet.
+Detailed error reporting polish and packaging are planned but not implemented yet.
 
 ## Features
 
@@ -36,11 +37,13 @@ Implemented:
 - Excel workbook contract validation, reading, and writing under `com.berk.dataintegration.excel`.
 - XML reading and writing under `com.berk.dataintegration.xml`.
 - Conversion orchestration under `com.berk.dataintegration.service`.
-- JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, and conversion behavior.
+- Swing UI under `com.berk.dataintegration.ui`, launched from `com.berk.dataintegration.app`.
+- JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
 Planned:
 
-- Swing desktop UI.
+- Structured error reporting polish.
+- Packaging and release polish.
 
 ## Technology Stack
 
@@ -122,7 +125,13 @@ Run the full verification build:
 
 ## Run
 
-There is no runnable desktop application or CLI yet. The current project state is a tested domain, calculation, validation, Excel reader/writer, XML reader/writer, and conversion service foundation.
+Run the Swing application:
+
+```bash
+./mvnw exec:java -Dexec.mainClass=com.berk.dataintegration.app.DataIntegrationToolApp
+```
+
+There is no packaged executable or CLI yet. The current project state is a tested domain, calculation, validation, Excel reader/writer, XML reader/writer, conversion service, and Swing UI foundation.
 
 ## Project Structure
 
@@ -153,7 +162,7 @@ There is no runnable desktop application or CLI yet. The current project state i
 5. Excel writer: implemented.
 6. Conversion services and round-trip tests: implemented.
 7. Structured error reporting improvements: planned.
-8. Swing user interface: planned.
+8. Swing user interface: implemented.
 9. Packaging and project polish: planned.
 
 See `docs/roadmap.md` for more detail.
@@ -162,7 +171,7 @@ See `docs/roadmap.md` for more detail.
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No UI yet.
+- No packaged executable or CLI yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
 
 ## Contributing
