@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phase 1 is implemented:
+Phases 1, 2, and 3 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -16,9 +16,12 @@ Phase 1 is implemented:
 - Central monetary calculation service.
 - Structured validation model with stable error codes.
 - Batch validation for field rules, duplicate identifiers, references, roles, dates, line rules, and currency consistency.
-- JUnit tests for calculation and validation.
+- Excel `.xlsx` contract validation for required sheets and exact headers.
+- Excel `.xlsx` reader using Apache POI, including intentional cell-type parsing, Excel date cells, ISO date text, blank-row handling, and structured source locations.
+- XML DTOs, explicit domain-to-XML mapping, JAXB XML writer, and secure XSD validation for generated XML.
+- JUnit tests for calculation, validation, Excel reader, and XML writer behavior.
 
-Excel reading/writing, XML reading/writing, XSD validation, conversion orchestration, and Swing UI are planned but not implemented yet.
+Excel writing, XML reading, standalone XML validation service, conversion orchestration, and Swing UI are planned but not implemented yet.
 
 ## Features
 
@@ -27,13 +30,15 @@ Implemented:
 - Contract-compatible domain values under `com.berk.dataintegration.domain`.
 - Monetary calculation under `com.berk.dataintegration.calculation`.
 - Structured validation under `com.berk.dataintegration.validation`.
-- JUnit test coverage for the current domain, calculation, and validation behavior.
+- Excel workbook contract validation and reading under `com.berk.dataintegration.excel`.
+- XML writing under `com.berk.dataintegration.xml`.
+- JUnit test coverage for the current domain, calculation, validation, Excel reader, and XML writer behavior.
 
 Planned:
 
-- Excel `.xlsx` reader and writer using Apache POI.
-- XML reader and writer using Jakarta XML Binding.
-- XSD validation for `invoice-data-v1`.
+- Excel `.xlsx` writer using Apache POI.
+- XML reader using Jakarta XML Binding.
+- Standalone XML validation service for `invoice-data-v1`.
 - Bidirectional conversion services.
 - Swing desktop UI.
 
@@ -48,7 +53,7 @@ Planned:
 - Maven Compiler Plugin `3.15.0`
 - Maven Surefire Plugin `3.5.5`
 
-Apache POI and JAXB dependencies are already declared for later phases, but Phase 1 production code does not use them yet.
+Apache POI is used by the Excel reader. Jakarta XML Binding is used by the XML writer.
 
 ## Architecture
 
@@ -58,6 +63,8 @@ The current implementation uses these packages:
 src/main/java/com/berk/dataintegration/
   calculation/
   domain/
+  excel/
+  xml/
   validation/
 ```
 
@@ -66,8 +73,6 @@ Planned packages for later phases include:
 ```text
 src/main/java/com/berk/dataintegration/
   app/
-  excel/
-  xml/
   service/
   ui/
   exception/
@@ -117,13 +122,12 @@ Run the full verification build:
 
 ## Run
 
-There is no runnable desktop application, CLI, or conversion service yet. The current project state is a tested domain, calculation, and validation foundation.
+There is no runnable desktop application, CLI, or conversion service yet. The current project state is a tested domain, calculation, validation, Excel reader, and XML writer foundation.
 
 ## Project Structure
 
 ```text
 .
-├── AGENTS.md
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
@@ -143,8 +147,8 @@ There is no runnable desktop application, CLI, or conversion service yet. The cu
 ## Roadmap
 
 1. Foundation, domain, calculation, and validation: implemented.
-2. Excel contract validation and reader: planned.
-3. XML DTOs, XSD validation, and writer: planned.
+2. Excel contract validation and reader: implemented.
+3. XML DTOs, XSD validation, and writer: implemented.
 4. XML reader and domain mapping: planned.
 5. Excel writer: planned.
 6. Conversion services and round-trip tests: planned.
@@ -158,8 +162,8 @@ See `docs/roadmap.md` for more detail.
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No Excel reader/writer yet.
-- No XML reader/writer or XSD validation service yet.
+- No Excel writer yet.
+- No XML reader or standalone XML validation service yet.
 - No UI or conversion orchestration yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
 

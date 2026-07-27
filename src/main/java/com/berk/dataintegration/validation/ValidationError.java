@@ -9,7 +9,8 @@ public record ValidationError(
         String sourceFile,
         String sheet,
         Integer row,
-        String column
+        String column,
+        String value
 ) {
     public static ValidationError of(
             ValidationCode code,
@@ -18,6 +19,6 @@ public record ValidationError(
             String field,
             String recordId
     ) {
-        return new ValidationError(code, category, message, field, recordId, null, null, null, null);
+        return new ValidationError(code, category, message, field, recordId, null, null, null, null, null);
     }
 }
