@@ -19,4 +19,8 @@ public record ConversionResult(
     public boolean isSuccess() {
         return errors.isEmpty();
     }
+
+    public ConversionReport toReport() {
+        return ConversionReport.from(this);
+    }
 }

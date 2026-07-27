@@ -54,7 +54,10 @@ public final class XmlInvoiceReader {
 
         XmlInvoiceBatch xmlBatch = unmarshal(path, sourceFile);
         InvoiceBatch domainBatch = mapper.toDomain(xmlBatch);
-        List<ValidationError> errors = new ArrayList<>(batchValidator.validate(domainBatch).errors());
+        XmlSourceIndex sourceIndex = XmlSourceIndex.from(xmlBatch, sourceFile);
+        List<ValidationError> errors = new ArrayList<>(batchValidator.validate(domainBatch).errors().stream()
+                .map(sourceIndex::enrich)
+                .toList());
         errors.addAll(businessConsistencyValidator.validate(xmlBatch, domainBatch, sourceFile));
         return new XmlReadResult(domainBatch, errors);
     }

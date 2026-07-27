@@ -1,6 +1,7 @@
 package com.berk.dataintegration.xml;
 
 import com.berk.dataintegration.domain.InvoiceBatch;
+import com.berk.dataintegration.validation.ValidationCategory;
 import com.berk.dataintegration.validation.ValidationCode;
 import com.berk.dataintegration.validation.ValidationError;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,25 @@ class XmlInvoiceReaderTest {
         assertEquals("INV-001#1", error.recordId());
         assertEquals("/InvoiceBatch/Invoices/Invoice[1]/Lines/Line[1]/LineNetAmount", error.sheet());
         assertEquals("101.00", error.value());
+    }
+
+    @Test
+    void enrichesXmlDomainValidationErrorsWithPathAndValue() throws IOException {
+        String xml = Files.readString(fixture("valid-invoice-data.xml"), StandardCharsets.UTF_8)
+                .replace("<SupplierPartyId>SUP-001</SupplierPartyId>", "<SupplierPartyId>CUS-001</SupplierPartyId>");
+        Path invalid = writeTemp("invalid-supplier-role.xml", xml);
+
+        XmlReadResult result = reader.read(invalid);
+
+        ValidationError error = onlyError(result.errors(), ValidationCode.INVALID_SUPPLIER_ROLE);
+        assertEquals(ValidationCategory.REFERENCE, error.category());
+        assertEquals("invalid-supplier-role.xml", error.sourceFile());
+        assertEquals("supplierId", error.field());
+        assertEquals("INV-001", error.recordId());
+        assertEquals("/InvoiceBatch/Invoices/Invoice[1]/SupplierPartyId", error.sheet());
+        assertEquals("CUS-001", error.value());
+        assertTrue(result.errors().stream().anyMatch(candidate -> candidate.code() == ValidationCode.SUPPLIER_CUSTOMER_SAME),
+                () -> result.errors().toString());
     }
 
     @Test

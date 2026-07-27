@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phases 1, 2, 3, 4, 5, 6, and 8 are implemented:
+Phases 1 through 8 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -22,10 +22,11 @@ Phases 1, 2, 3, 4, 5, 6, and 8 are implemented:
 - Secure XML reader using JAXB, XSD validation, XML-to-domain mapping, and business consistency validation for imported totals.
 - Excel `.xlsx` writer using Apache POI, including exact sheets/headers, real date cells, numeric decimal cells, header styling, freeze panes, filters, and useful validation lists.
 - Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
+- Presentation-friendly conversion reports with success/failure state, record counts, ordered errors, grouped errors, and stable error categories.
 - Small Swing UI over the tested conversion services, with direction selection, file choosers, progress/status, counts, and structured error display.
 - JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
-Detailed error reporting polish and packaging are planned but not implemented yet.
+Packaging is planned but not implemented yet.
 
 ## Features
 
@@ -36,13 +37,12 @@ Implemented:
 - Structured validation under `com.berk.dataintegration.validation`.
 - Excel workbook contract validation, reading, and writing under `com.berk.dataintegration.excel`.
 - XML reading and writing under `com.berk.dataintegration.xml`.
-- Conversion orchestration under `com.berk.dataintegration.service`.
+- Conversion orchestration and presentation-friendly conversion reports under `com.berk.dataintegration.service`.
 - Swing UI under `com.berk.dataintegration.ui`, launched from `com.berk.dataintegration.app`.
 - JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
 Planned:
 
-- Structured error reporting polish.
 - Packaging and release polish.
 
 ## Technology Stack
@@ -56,7 +56,7 @@ Planned:
 - Maven Compiler Plugin `3.15.0`
 - Maven Surefire Plugin `3.5.5`
 
-Apache POI is used by the Excel reader. Jakarta XML Binding is used by the XML writer.
+Apache POI is used by the Excel reader and writer. Jakarta XML Binding is used by the XML reader and writer.
 
 ## Architecture
 
@@ -64,21 +64,14 @@ The current implementation uses these packages:
 
 ```text
 src/main/java/com/berk/dataintegration/
+  app/
   calculation/
   domain/
   excel/
-  xml/
-  validation/
-```
-
-Planned packages for later phases include:
-
-```text
-src/main/java/com/berk/dataintegration/
-  app/
   service/
   ui/
-  exception/
+  xml/
+  validation/
 ```
 
 Domain classes remain independent from Apache POI, JAXB, and Swing.
@@ -161,7 +154,7 @@ There is no packaged executable or CLI yet. The current project state is a teste
 4. XML reader and domain mapping: implemented.
 5. Excel writer: implemented.
 6. Conversion services and round-trip tests: implemented.
-7. Structured error reporting improvements: planned.
+7. Structured error reporting improvements: implemented.
 8. Swing user interface: implemented.
 9. Packaging and project polish: planned.
 
