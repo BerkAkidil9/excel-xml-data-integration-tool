@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phases 1 through 8 are implemented:
+Phases 1 through 9 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -24,9 +24,10 @@ Phases 1 through 8 are implemented:
 - Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
 - Presentation-friendly conversion reports with success/failure state, record counts, ordered errors, grouped errors, and stable error categories.
 - Small Swing UI over the tested conversion services, with direction selection, file choosers, progress/status, counts, and structured error display.
+- Maven packaging for a runnable Swing application jar.
 - JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
-Packaging is planned but not implemented yet.
+The project is now packaged as a local desktop application, not as an installer or signed release artifact.
 
 ## Features
 
@@ -39,11 +40,13 @@ Implemented:
 - XML reading and writing under `com.berk.dataintegration.xml`.
 - Conversion orchestration and presentation-friendly conversion reports under `com.berk.dataintegration.service`.
 - Swing UI under `com.berk.dataintegration.ui`, launched from `com.berk.dataintegration.app`.
+- Runnable application packaging through Maven.
 - JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
 Planned:
 
-- Packaging and release polish.
+- Installer/signing work, if needed for a future release.
+- Optional UBL adapter research only after the fixed-contract v1 is complete.
 
 ## Technology Stack
 
@@ -55,6 +58,7 @@ Planned:
 - JUnit Jupiter `6.1.2`
 - Maven Compiler Plugin `3.15.0`
 - Maven Surefire Plugin `3.5.5`
+- Maven Shade Plugin `3.6.1`
 
 Apache POI is used by the Excel reader and writer. Jakarta XML Binding is used by the XML reader and writer.
 
@@ -76,6 +80,20 @@ src/main/java/com/berk/dataintegration/
 
 Domain classes remain independent from Apache POI, JAXB, and Swing.
 
+High-level flow:
+
+```text
+Swing UI
+  -> conversion service
+      -> Excel reader/writer
+      -> XML reader/writer
+      -> validation
+      -> calculation
+          -> domain model
+```
+
+Excel and XML infrastructure depend on the domain model, validation, and calculation services. The domain model does not depend on Apache POI, JAXB, Swing, or service orchestration.
+
 ## Data Formats
 
 The repository defines one logical invoice data contract:
@@ -96,11 +114,27 @@ Useful sample files:
 
 Java 21 is required.
 
+Clone and build:
+
 ```bash
+git clone https://github.com/BerkAkidil9/excel-xml-data-integration-tool.git
+cd excel-xml-data-integration-tool
 ./mvnw compile
 ```
 
 On a fresh machine, the Maven Wrapper downloads Maven on first use, and Maven downloads project dependencies.
+
+Create the regular jar and runnable application jar:
+
+```bash
+./mvnw package
+```
+
+The runnable jar is created at:
+
+```text
+target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
+```
 
 ## Test
 
@@ -118,13 +152,37 @@ Run the full verification build:
 
 ## Run
 
-Run the Swing application:
+Run the Swing application during development:
 
 ```bash
 ./mvnw exec:java -Dexec.mainClass=com.berk.dataintegration.app.DataIntegrationToolApp
 ```
 
-There is no packaged executable or CLI yet. The current project state is a tested domain, calculation, validation, Excel reader/writer, XML reader/writer, conversion service, and Swing UI foundation.
+Run the packaged application after `./mvnw package`:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
+```
+
+There is no CLI yet. The current user-facing entry point is the Swing application.
+
+## Usage
+
+1. Choose the conversion direction: Excel to XML or XML to Excel.
+2. Select an input file matching the repository contract.
+3. Select the output file location.
+4. Run the conversion.
+5. Review record counts and structured errors if validation fails.
+
+The application validates input before writing output. Failed conversions should not leave partial output behind.
+
+## Screenshots
+
+Actual screenshots are not committed yet. Placeholder capture list:
+
+- Main conversion window.
+- Successful Excel to XML conversion result.
+- Validation failure with structured error rows.
 
 ## Project Structure
 
@@ -156,7 +214,7 @@ There is no packaged executable or CLI yet. The current project state is a teste
 6. Conversion services and round-trip tests: implemented.
 7. Structured error reporting improvements: implemented.
 8. Swing user interface: implemented.
-9. Packaging and project polish: planned.
+9. Packaging and project polish: implemented.
 
 See `docs/roadmap.md` for more detail.
 
@@ -164,8 +222,9 @@ See `docs/roadmap.md` for more detail.
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No packaged executable or CLI yet.
+- No installer, code signing, auto-update, or CLI yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
+- Screenshots are documented as placeholders until real UI screenshots are captured.
 
 ## Contributing
 
