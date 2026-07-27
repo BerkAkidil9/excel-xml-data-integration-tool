@@ -8,7 +8,7 @@ The project is intentionally not a generic Excel/XML mapper and does not claim l
 
 ## Current Status
 
-Phases 1, 2, 3, and 4 are implemented:
+Phases 1, 2, 3, 4, 5, and 6 are implemented:
 
 - Maven project foundation for Java 21.
 - Maven Wrapper support.
@@ -20,9 +20,11 @@ Phases 1, 2, 3, and 4 are implemented:
 - Excel `.xlsx` reader using Apache POI, including intentional cell-type parsing, Excel date cells, ISO date text, blank-row handling, and structured source locations.
 - XML DTOs, explicit domain-to-XML mapping, JAXB XML writer, and secure XSD validation for generated XML.
 - Secure XML reader using JAXB, XSD validation, XML-to-domain mapping, and business consistency validation for imported totals.
-- JUnit tests for calculation, validation, Excel reader, XML writer, and XML reader behavior.
+- Excel `.xlsx` writer using Apache POI, including exact sheets/headers, real date cells, numeric decimal cells, header styling, freeze panes, filters, and useful validation lists.
+- Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
+- JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, and conversion behavior.
 
-Excel writing, conversion orchestration, and Swing UI are planned but not implemented yet.
+Swing UI is planned but not implemented yet.
 
 ## Features
 
@@ -31,14 +33,13 @@ Implemented:
 - Contract-compatible domain values under `com.berk.dataintegration.domain`.
 - Monetary calculation under `com.berk.dataintegration.calculation`.
 - Structured validation under `com.berk.dataintegration.validation`.
-- Excel workbook contract validation and reading under `com.berk.dataintegration.excel`.
+- Excel workbook contract validation, reading, and writing under `com.berk.dataintegration.excel`.
 - XML reading and writing under `com.berk.dataintegration.xml`.
-- JUnit test coverage for the current domain, calculation, validation, Excel reader, XML writer, and XML reader behavior.
+- Conversion orchestration under `com.berk.dataintegration.service`.
+- JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, and conversion behavior.
 
 Planned:
 
-- Excel `.xlsx` writer using Apache POI.
-- Bidirectional conversion services.
 - Swing desktop UI.
 
 ## Technology Stack
@@ -121,7 +122,7 @@ Run the full verification build:
 
 ## Run
 
-There is no runnable desktop application, CLI, or conversion service yet. The current project state is a tested domain, calculation, validation, Excel reader, XML writer, and XML reader foundation.
+There is no runnable desktop application or CLI yet. The current project state is a tested domain, calculation, validation, Excel reader/writer, XML reader/writer, and conversion service foundation.
 
 ## Project Structure
 
@@ -149,8 +150,8 @@ There is no runnable desktop application, CLI, or conversion service yet. The cu
 2. Excel contract validation and reader: implemented.
 3. XML DTOs, XSD validation, and writer: implemented.
 4. XML reader and domain mapping: implemented.
-5. Excel writer: planned.
-6. Conversion services and round-trip tests: planned.
+5. Excel writer: implemented.
+6. Conversion services and round-trip tests: implemented.
 7. Structured error reporting improvements: planned.
 8. Swing user interface: planned.
 9. Packaging and project polish: planned.
@@ -161,8 +162,7 @@ See `docs/roadmap.md` for more detail.
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No Excel writer yet.
-- No UI or conversion orchestration yet.
+- No UI yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
 
 ## Contributing
