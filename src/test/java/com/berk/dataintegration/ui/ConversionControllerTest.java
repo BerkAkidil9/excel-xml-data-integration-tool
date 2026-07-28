@@ -6,7 +6,11 @@ import com.berk.dataintegration.validation.ValidationCategory;
 import com.berk.dataintegration.validation.ValidationCode;
 import com.berk.dataintegration.validation.ValidationError;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConversionControllerTest {
+    @TempDir
+    Path tempDir;
+
     @Test
     void requiresInputAndOutputBeforeStarting() {
         ConversionViewModel model = new ConversionViewModel();
@@ -59,6 +66,45 @@ class ConversionControllerTest {
 
         assertEquals(Path.of("converted-output.xlsx"), executor.request.outputPath());
         assertEquals(Path.of("converted-output.xlsx"), model.outputPath());
+    }
+
+    @Test
+    void suggestsOutputPathWhenInputIsSelectedAndOutputIsEmpty() {
+        ConversionViewModel model = new ConversionViewModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+
+        controller.updateInputPath(Path.of("invoice.xlsx"));
+
+        assertEquals(Path.of("invoice.xlsx"), model.inputPath());
+        assertEquals(Path.of("invoice.xml"), model.outputPath());
+    }
+
+    @Test
+    void keepsExistingOutputPathWhenInputChanges() {
+        ConversionViewModel model = new ConversionViewModel();
+        model.setOutputPath(Path.of("custom.xml"));
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+
+        controller.updateInputPath(Path.of("invoice.xlsx"));
+
+        assertEquals(Path.of("custom.xml"), model.outputPath());
+    }
+
+    @Test
+    void rejectsInputFileWithUnexpectedExtensionBeforeStarting() {
+        ConversionViewModel model = new ConversionViewModel();
+        model.setInputPath(Path.of("input.xml"));
+        model.setOutputPath(Path.of("output.xml"));
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+
+        controller.convert();
+
+        assertFalse(model.running());
+        assertEquals("Input file must use .xlsx extension.", model.status());
+        assertEquals(0, executor.calls);
     }
 
     @Test
@@ -118,6 +164,41 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Conversion failed unexpectedly: boom", model.status());
+    }
+
+    @Test
+    void savesCurrentErrorsAsCsvReport() throws IOException {
+        ConversionViewModel model = readyModel();
+        ValidationError error = ValidationError.of(
+                ValidationCode.REQUIRED_FIELD,
+                ValidationCategory.FIELD,
+                "Missing.",
+                "invoiceNumber",
+                "INV-1"
+        );
+        model.setErrors(List.of(error));
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        Path report = tempDir.resolve("errors.csv");
+
+        controller.saveErrorReport(report);
+
+        assertEquals("Error report saved.", model.status());
+        String csv = Files.readString(report, StandardCharsets.UTF_8);
+        assertTrue(csv.contains("REQUIRED_FIELD,FIELD,invoiceNumber,INV-1"), csv);
+    }
+
+    @Test
+    void savesExcelTemplate() {
+        ConversionViewModel model = readyModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        Path template = tempDir.resolve("invoice-template");
+
+        controller.saveTemplate(template);
+
+        assertEquals("Excel template saved.", model.status());
+        assertTrue(Files.exists(tempDir.resolve("invoice-template.xlsx")));
     }
 
     private ConversionViewModel readyModel() {

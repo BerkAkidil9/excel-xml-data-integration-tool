@@ -9,6 +9,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -21,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,8 @@ public final class SwingConversionFrame extends JFrame {
     private final JTextField inputField = new JTextField();
     private final JTextField outputField = new JTextField();
     private final JButton convertButton = new JButton("Convert");
+    private final JButton saveErrorReportButton = new JButton("Save Error Report");
+    private final JButton saveTemplateButton = new JButton("Save Excel Template");
     private final JProgressBar progressBar = new JProgressBar();
     private final JLabel statusLabel = new JLabel();
     private final JLabel countsLabel = new JLabel();
@@ -82,11 +86,18 @@ public final class SwingConversionFrame extends JFrame {
         constraints.weightx = 0;
         add(panel, constraints, 2, 2, 0, button("Browse", this::chooseOutput));
 
+        add(panel, constraints, 0, 3, 0, saveTemplateButton);
+        add(panel, constraints, 1, 3, 0, saveErrorReportButton);
         add(panel, constraints, 2, 3, 0, convertButton);
 
         directionSelector.addActionListener(event -> controller.updateDirection((ConversionDirection) directionSelector.getSelectedItem()));
+        saveTemplateButton.addActionListener(event -> saveTemplate());
+        saveErrorReportButton.addActionListener(event -> saveErrorReport());
         convertButton.addActionListener(event -> {
             syncPathsFromFields();
+            if (!confirmOverwrite(model.outputPath())) {
+                return;
+            }
             controller.convert();
         });
         return panel;
@@ -127,7 +138,8 @@ public final class SwingConversionFrame extends JFrame {
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             Path path = chooser.getSelectedFile().toPath();
             inputField.setText(path.toString());
-            model.setInputPath(path);
+            controller.updateInputPath(path);
+            outputField.setText(model.outputPath() == null ? "" : model.outputPath().toString());
         }
     }
 
@@ -143,6 +155,26 @@ public final class SwingConversionFrame extends JFrame {
         }
     }
 
+    private void saveErrorReport() {
+        JFileChooser chooser = chooser("csv");
+        if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            Path path = OutputPathExtensions.withExpectedExtension(chooser.getSelectedFile().toPath(), "csv");
+            if (confirmOverwrite(path)) {
+                controller.saveErrorReport(path);
+            }
+        }
+    }
+
+    private void saveTemplate() {
+        JFileChooser chooser = chooser("xlsx");
+        if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            Path path = OutputPathExtensions.withExpectedExtension(chooser.getSelectedFile().toPath(), "xlsx");
+            if (confirmOverwrite(path)) {
+                controller.saveTemplate(path);
+            }
+        }
+    }
+
     private JFileChooser chooser(String extension) {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileNameExtensionFilter("*." + extension, extension));
@@ -150,13 +182,28 @@ public final class SwingConversionFrame extends JFrame {
     }
 
     private void syncPathsFromFields() {
-        model.setInputPath(path(inputField.getText()));
-        Path outputPath = OutputPathExtensions.withExpectedExtension(
-                path(outputField.getText()),
-                model.direction().outputExtension()
-        );
+        Path inputPath = path(inputField.getText());
+        Path typedOutputPath = path(outputField.getText());
+        controller.updateInputPath(inputPath);
+        Path outputPath = typedOutputPath == null
+                ? model.outputPath()
+                : OutputPathExtensions.withExpectedExtension(typedOutputPath, model.direction().outputExtension());
         outputField.setText(outputPath == null ? "" : outputPath.toString());
         model.setOutputPath(outputPath);
+    }
+
+    private boolean confirmOverwrite(Path path) {
+        if (path == null || !Files.exists(path)) {
+            return true;
+        }
+        int answer = JOptionPane.showConfirmDialog(
+                this,
+                "The output file already exists. Overwrite it?",
+                "Confirm Overwrite",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+        return answer == JOptionPane.YES_OPTION;
     }
 
     private Path path(String text) {
@@ -172,7 +219,11 @@ public final class SwingConversionFrame extends JFrame {
 
     private void refresh() {
         directionSelector.setSelectedItem(model.direction());
+        inputField.setText(model.inputPath() == null ? "" : model.inputPath().toString());
+        outputField.setText(model.outputPath() == null ? "" : model.outputPath().toString());
         convertButton.setEnabled(!model.running());
+        saveTemplateButton.setEnabled(!model.running());
+        saveErrorReportButton.setEnabled(!model.running() && !model.errors().isEmpty());
         progressBar.setVisible(model.running());
         statusLabel.setText(model.status());
         countsLabel.setText(countsText(model.recordCounts()));

@@ -18,4 +18,23 @@ final class OutputPathExtensions {
         }
         return path.resolveSibling(fileName + expectedSuffix);
     }
+
+    static boolean hasExtension(Path path, String extension) {
+        if (path == null) {
+            return false;
+        }
+        String expectedSuffix = "." + extension;
+        String fileName = path.getFileName() == null ? "" : path.getFileName().toString();
+        return fileName.toLowerCase(Locale.ROOT).endsWith(expectedSuffix.toLowerCase(Locale.ROOT));
+    }
+
+    static Path replaceExtension(Path path, String extension) {
+        if (path == null) {
+            return null;
+        }
+        String fileName = path.getFileName() == null ? "" : path.getFileName().toString();
+        int dotIndex = fileName.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+        return path.resolveSibling(baseName + "." + extension);
+    }
 }

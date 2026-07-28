@@ -1,5 +1,6 @@
 package com.berk.dataintegration.app;
 
+import com.berk.dataintegration.cli.CommandLineApp;
 import com.berk.dataintegration.ui.ConversionController;
 import com.berk.dataintegration.ui.ConversionViewModel;
 import com.berk.dataintegration.ui.SwingConversionFrame;
@@ -13,6 +14,10 @@ public final class DataIntegrationToolApp {
     }
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            int exitCode = new CommandLineApp().run(args, System.out, System.err);
+            System.exit(exitCode);
+        }
         SwingUtilities.invokeLater(() -> {
             setSystemLookAndFeel();
             ConversionViewModel model = new ConversionViewModel();

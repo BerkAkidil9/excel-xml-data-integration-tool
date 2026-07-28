@@ -23,8 +23,10 @@ Phases 1 through 9 are implemented:
 - Excel `.xlsx` writer using Apache POI, including exact sheets/headers, real date cells, numeric decimal cells, header styling, freeze panes, filters, and useful validation lists.
 - Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
 - Presentation-friendly conversion reports with success/failure state, record counts, ordered errors, grouped errors, and stable error categories.
-- Small Swing UI over the tested conversion services, with direction selection, file choosers, progress/status, counts, and structured error display.
+- Dependency-free CLI for conversion automation, CSV error reports, and blank Excel template generation.
+- Small Swing UI over the tested conversion services, with direction selection, file choosers, output path suggestions, overwrite confirmation, progress/status, counts, structured error display, CSV error report export, and Excel template saving.
 - Maven packaging for a runnable Swing application jar.
+- GitHub Actions verification and Maven Enforcer build-environment checks.
 - JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
 
 The project is now packaged as a local desktop application, not as an installer or signed release artifact.
@@ -39,6 +41,8 @@ Implemented:
 - Excel workbook contract validation, reading, and writing under `com.berk.dataintegration.excel`.
 - XML reading and writing under `com.berk.dataintegration.xml`.
 - Conversion orchestration and presentation-friendly conversion reports under `com.berk.dataintegration.service`.
+- Dependency-free command-line conversion under `com.berk.dataintegration.cli`.
+- CSV conversion error report export under `com.berk.dataintegration.service`.
 - Swing UI under `com.berk.dataintegration.ui`, launched from `com.berk.dataintegration.app`.
 - Runnable application packaging through Maven.
 - JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
@@ -59,6 +63,7 @@ Planned:
 - Maven Compiler Plugin `3.15.0`
 - Maven Surefire Plugin `3.5.5`
 - Maven Shade Plugin `3.6.1`
+- Maven Enforcer Plugin `3.6.3`
 
 Apache POI is used by the Excel reader and writer. Jakarta XML Binding is used by the XML reader and writer.
 
@@ -164,7 +169,45 @@ Run the packaged application after `./mvnw package`:
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
 ```
 
-There is no CLI yet. The current user-facing entry point is the Swing application.
+Run a conversion from the command line:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
+  convert \
+  --direction excel-to-xml \
+  --input examples/valid-invoice-data.xlsx \
+  --output /tmp/valid-invoice-data.xml
+```
+
+Write a CSV error report when needed:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
+  convert \
+  --direction xml-to-excel \
+  --input broken.xml \
+  --output fixed.xlsx \
+  --error-report errors.csv
+```
+
+Create a blank Excel workbook template:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
+  template \
+  --output invoice-data-template.xlsx
+```
+
+Supported CLI directions:
+
+- `excel-to-xml`
+- `xml-to-excel`
+
+CLI exit codes:
+
+- `0`: conversion completed
+- `1`: conversion failed because of input validation or conversion errors
+- `2`: command-line usage error
 
 ## Usage
 
