@@ -1,6 +1,6 @@
 # Excel/XML Data Integration Tool
 
-A desktop and command-line application for converting invoice data between a fixed Excel workbook contract and a fixed XML `invoice-data-v1` contract.
+A desktop and command-line application for converting invoice data between the project's predefined Excel workbook format and XML `invoice-data-v1` format.
 
 The application focuses on a predefined invoice data exchange format. It is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
 
