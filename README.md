@@ -1,8 +1,8 @@
 # Excel/XML Data Integration Tool
 
-A Java 21 desktop and command-line application for converting invoice data between a fixed Excel workbook contract and a fixed XML `invoice-data-v1` contract.
+A desktop and command-line application for converting invoice data between a fixed Excel workbook contract and a fixed XML `invoice-data-v1` contract.
 
-This project is a portfolio-quality data integration tool. It is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
+The application focuses on a predefined invoice data exchange format. It is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
 
 ## Status
 
@@ -20,7 +20,7 @@ The v1 scope is implemented:
 - Maven packaging for a runnable application jar.
 - GitHub Actions verification with Java 21 and `./mvnw verify`.
 
-The repository is ready to publish as a portfolio project. It is not packaged as a signed installer and does not include auto-update support.
+The application is packaged as a runnable local desktop application. It is not distributed as a signed installer and does not include auto-update support.
 
 ## Features
 
