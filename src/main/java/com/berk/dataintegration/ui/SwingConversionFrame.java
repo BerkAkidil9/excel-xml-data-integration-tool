@@ -134,7 +134,10 @@ public final class SwingConversionFrame extends JFrame {
     private void chooseOutput() {
         JFileChooser chooser = chooser(model.direction().outputExtension());
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            Path path = chooser.getSelectedFile().toPath();
+            Path path = OutputPathExtensions.withExpectedExtension(
+                    chooser.getSelectedFile().toPath(),
+                    model.direction().outputExtension()
+            );
             outputField.setText(path.toString());
             model.setOutputPath(path);
         }
@@ -148,7 +151,12 @@ public final class SwingConversionFrame extends JFrame {
 
     private void syncPathsFromFields() {
         model.setInputPath(path(inputField.getText()));
-        model.setOutputPath(path(outputField.getText()));
+        Path outputPath = OutputPathExtensions.withExpectedExtension(
+                path(outputField.getText()),
+                model.direction().outputExtension()
+        );
+        outputField.setText(outputPath == null ? "" : outputPath.toString());
+        model.setOutputPath(outputPath);
     }
 
     private Path path(String text) {

@@ -25,6 +25,12 @@ public final class ConversionController {
             model.setErrors(List.of());
             return;
         }
+        request = new ConversionRequest(
+                request.direction(),
+                request.inputPath(),
+                OutputPathExtensions.withExpectedExtension(request.outputPath(), request.direction().outputExtension())
+        );
+        model.setOutputPath(request.outputPath());
 
         model.setRunning(true);
         model.setStatus("Converting...");

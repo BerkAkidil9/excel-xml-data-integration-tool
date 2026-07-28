@@ -47,6 +47,21 @@ class ConversionControllerTest {
     }
 
     @Test
+    void appendsExpectedOutputExtensionBeforeStartingConversion() {
+        ConversionViewModel model = new ConversionViewModel();
+        model.setDirection(ConversionDirection.XML_TO_EXCEL);
+        model.setInputPath(Path.of("input.xml"));
+        model.setOutputPath(Path.of("converted-output"));
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+
+        controller.convert();
+
+        assertEquals(Path.of("converted-output.xlsx"), executor.request.outputPath());
+        assertEquals(Path.of("converted-output.xlsx"), model.outputPath());
+    }
+
+    @Test
     void successfulConversionUpdatesCountsAndStatus() {
         ConversionViewModel model = readyModel();
         RecordingExecutor executor = new RecordingExecutor();
