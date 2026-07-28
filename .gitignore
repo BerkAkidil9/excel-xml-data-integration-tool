@@ -12,5 +12,8 @@ Thumbs.db
 *.tmp
 out/
 AGENTS.md
+CONTRIBUTING.md
 docs/development/prompts/
+docs/references.md
+docs/roadmap.md
 manual-ui-test/

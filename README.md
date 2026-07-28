@@ -1,61 +1,66 @@
 # Excel/XML Data Integration Tool
 
-## Project Overview
+A Java 21 desktop and command-line application for converting invoice data between a fixed Excel workbook contract and a fixed XML `invoice-data-v1` contract.
 
-Excel/XML Data Integration Tool is a fixed-contract Java project for converting invoice data between a repository-defined Excel workbook format and a repository-defined XML `invoice-data-v1` format.
+This project is a portfolio-quality data integration tool. It is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
 
-The project is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
+## Status
 
-## Current Status
+The v1 scope is implemented:
 
-Phases 1 through 9 are implemented:
+- Excel `.xlsx` contract validation, reading, and writing with Apache POI.
+- XML reading and writing with Jakarta XML Binding.
+- XSD validation for the repository-defined `invoice-data-v1` XML format.
+- Domain and business validation for parties, payment accounts, invoices, references, dates, currencies, and invoice lines.
+- Central monetary calculation with `BigDecimal`, scale 2, and `RoundingMode.HALF_UP`.
+- Structured conversion errors with stable codes, categories, source locations, fields, record identifiers, and offending values where available.
+- Excel to XML and XML to Excel conversion services with temporary output handling.
+- CLI support for conversion, CSV error reports, and blank Excel template generation.
+- Swing UI for local desktop use.
+- Maven packaging for a runnable application jar.
+- GitHub Actions verification with Java 21 and `./mvnw verify`.
 
-- Maven project foundation for Java 21.
-- Maven Wrapper support.
-- Immutable domain model for invoice batches, parties, payment accounts, invoices, and invoice lines.
-- Central monetary calculation service.
-- Structured validation model with stable error codes.
-- Batch validation for field rules, duplicate identifiers, references, roles, dates, line rules, and currency consistency.
-- Excel `.xlsx` contract validation for required sheets and exact headers.
-- Excel `.xlsx` reader using Apache POI, including intentional cell-type parsing, Excel date cells, ISO date text, blank-row handling, and structured source locations.
-- XML DTOs, explicit domain-to-XML mapping, JAXB XML writer, and secure XSD validation for generated XML.
-- Secure XML reader using JAXB, XSD validation, XML-to-domain mapping, and business consistency validation for imported totals.
-- Excel `.xlsx` writer using Apache POI, including exact sheets/headers, real date cells, numeric decimal cells, header styling, freeze panes, filters, and useful validation lists.
-- Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
-- Presentation-friendly conversion reports with success/failure state, record counts, ordered errors, grouped errors, and stable error categories.
-- Dependency-free CLI for conversion automation, CSV error reports, and blank Excel template generation.
-- Small Swing UI over the tested conversion services, with direction selection, file choosers, output path suggestions, overwrite confirmation, progress/status, counts, sortable and filterable structured error display, selected-error details, selected-error copy, CSV error report export, and Excel template saving.
-- Maven packaging for a runnable Swing application jar.
-- GitHub Actions verification and Maven Enforcer build-environment checks.
-- JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
-
-The project is now packaged as a local desktop application, not as an installer or signed release artifact.
+The repository is ready to publish as a portfolio project. It is not packaged as a signed installer and does not include auto-update support.
 
 ## Features
 
-Implemented:
-
-- Contract-compatible domain values under `com.berk.dataintegration.domain`.
-- Monetary calculation under `com.berk.dataintegration.calculation`.
-- Structured validation under `com.berk.dataintegration.validation`.
-- Excel workbook contract validation, reading, and writing under `com.berk.dataintegration.excel`.
-- XML reading and writing under `com.berk.dataintegration.xml`.
-- Conversion orchestration and presentation-friendly conversion reports under `com.berk.dataintegration.service`.
-- Dependency-free command-line conversion under `com.berk.dataintegration.cli`.
-- CSV conversion error report export under `com.berk.dataintegration.service`.
-- Swing UI under `com.berk.dataintegration.ui`, launched from `com.berk.dataintegration.app`.
-- Runnable application packaging through Maven.
-- JUnit test coverage for the current domain, calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
-
-Planned:
-
-- Installer/signing work, if needed for a future release.
-- Optional UBL adapter research only after the fixed-contract v1 is complete.
+- Bidirectional conversion:
+  - Excel to XML
+  - XML to Excel
+- Fixed Excel workbook structure:
+  - `Parties`
+  - `PaymentAccounts`
+  - `Invoices`
+  - `InvoiceLines`
+- Fixed XML namespace:
+  - `urn:berk:excel-xml-integration:invoice:v1`
+- Secure XML parsing:
+  - DOCTYPE rejected
+  - external entities disabled
+  - external DTD/schema access disabled
+  - no network schema fetching
+- Validation:
+  - required fields
+  - duplicate identifiers
+  - missing references
+  - supplier/customer role correctness
+  - due date rules
+  - currency consistency
+  - positive quantities
+  - non-negative prices
+  - tax-rate boundaries
+  - calculated total mismatches
+- Output helpers:
+  - runnable application jar
+  - CSV error report export
+  - blank Excel template generation
+  - sample valid Excel and XML files
 
 ## Technology Stack
 
 - Java 21
 - Apache Maven
+- Java Swing
 - Apache POI `5.5.1`
 - Jakarta XML Binding API `4.0.5`
 - JAXB Runtime `4.0.9`
@@ -65,30 +70,27 @@ Planned:
 - Maven Shade Plugin `3.6.1`
 - Maven Enforcer Plugin `3.6.3`
 
-Apache POI is used by the Excel reader and writer. Jakarta XML Binding is used by the XML reader and writer.
-
 ## Architecture
 
-The current implementation uses these packages:
+The implementation keeps domain logic independent from file formats and UI concerns.
 
 ```text
 src/main/java/com/berk/dataintegration/
   app/
   calculation/
+  cli/
   domain/
   excel/
   service/
   ui/
-  xml/
   validation/
+  xml/
 ```
 
-Domain classes remain independent from Apache POI, JAXB, and Swing.
-
-High-level flow:
+High-level dependency flow:
 
 ```text
-Swing UI
+Swing UI / CLI
   -> conversion service
       -> Excel reader/writer
       -> XML reader/writer
@@ -97,37 +99,40 @@ Swing UI
           -> domain model
 ```
 
-Excel and XML infrastructure depend on the domain model, validation, and calculation services. The domain model does not depend on Apache POI, JAXB, Swing, or service orchestration.
+The domain layer does not depend on Apache POI, JAXB, Swing, or service orchestration.
+
+More detail:
+
+- Architecture decisions: `docs/architecture/decisions.md`
+- Testing strategy: `docs/development/testing-strategy.md`
 
 ## Data Formats
 
 The repository defines one logical invoice data contract:
 
+- Shared domain and validation contract: `docs/data-format/data-contract.md`
 - Excel workbook contract: `docs/data-format/excel-format.md`
 - XML contract: `docs/data-format/xml-format.md`
-- Shared domain and validation contract: `docs/data-format/data-contract.md`
 - XML Schema: `src/main/resources/schema/invoice-data-v1.xsd`
 
-Useful sample files:
+Useful files:
 
-- `templates/invoice-data-template.xlsx`
-- `examples/valid-invoice-data.xlsx`
-- `examples/valid-invoice-data.xml`
-- `src/test/resources/fixtures/`
+- Blank Excel template: `templates/invoice-data-template.xlsx`
+- Valid Excel example: `examples/valid-invoice-data.xlsx`
+- Valid XML example: `examples/valid-invoice-data.xml`
+- Test fixtures: `src/test/resources/fixtures/`
 
 ## Build
 
 Java 21 is required.
 
-Clone and build:
-
 ```bash
 git clone https://github.com/BerkAkidil9/excel-xml-data-integration-tool.git
 cd excel-xml-data-integration-tool
-./mvnw compile
+./mvnw verify
 ```
 
-On a fresh machine, the Maven Wrapper downloads Maven on first use, and Maven downloads project dependencies.
+On a fresh machine, the Maven Wrapper downloads Maven when needed, and Maven downloads project dependencies.
 
 Create the regular jar and runnable application jar:
 
@@ -135,24 +140,10 @@ Create the regular jar and runnable application jar:
 ./mvnw package
 ```
 
-The runnable jar is created at:
+Runnable jar:
 
 ```text
 target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
-```
-
-## Test
-
-Run the unit test suite:
-
-```bash
-./mvnw test
-```
-
-Run the full verification build:
-
-```bash
-./mvnw verify
 ```
 
 ## Run
@@ -163,13 +154,13 @@ Run the Swing application during development:
 ./mvnw exec:java -Dexec.mainClass=com.berk.dataintegration.app.DataIntegrationToolApp
 ```
 
-Run the packaged application after `./mvnw package`:
+Run the packaged Swing application after `./mvnw package`:
 
 ```bash
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
 ```
 
-Run a conversion from the command line:
+Convert Excel to XML:
 
 ```bash
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
@@ -179,7 +170,17 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   --output /tmp/valid-invoice-data.xml
 ```
 
-Write a CSV error report when needed:
+Convert XML to Excel:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
+  convert \
+  --direction xml-to-excel \
+  --input examples/valid-invoice-data.xml \
+  --output /tmp/valid-invoice-data.xlsx
+```
+
+Write a CSV error report:
 
 ```bash
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
@@ -198,48 +199,57 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   --output invoice-data-template.xlsx
 ```
 
-Supported CLI directions:
-
-- `excel-to-xml`
-- `xml-to-excel`
-
 CLI exit codes:
 
 - `0`: conversion completed
 - `1`: conversion failed because of input validation or conversion errors
 - `2`: command-line usage error
 
-## Usage
+## Desktop Usage
 
-1. Choose the conversion direction: Excel to XML or XML to Excel.
-2. Select an input file matching the repository contract.
-3. Select the output file location.
-4. Run the conversion.
-5. Review record counts and structured errors if validation fails.
+The Swing UI supports:
+
+- direction selection
+- input and output file choosers
+- automatic output path suggestions
+- overwrite confirmation
+- background conversion work
+- progress and status display
+- record counts
+- structured validation error table
+- error filtering and selected-error details
+- selected-error copy
+- CSV error report export
+- Excel template saving
 
 The application validates input before writing output. Failed conversions should not leave partial output behind.
 
-## Screenshots
+## Testing
 
-Actual screenshots are not committed yet. Placeholder capture list:
+Run the unit test suite:
 
-- Main conversion window.
-- Successful Excel to XML conversion result.
-- Validation failure with structured error rows.
+```bash
+./mvnw test
+```
+
+Run the full verification build:
+
+```bash
+./mvnw verify
+```
+
+The automated tests cover calculation, validation, Excel reader/writer behavior, XML reader/writer behavior, conversion services, CLI behavior, and stable Swing controller/view-model behavior.
 
 ## Project Structure
 
 ```text
 .
-├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
 ├── docs/
 │   ├── architecture/
 │   ├── data-format/
-│   ├── development/
-│   ├── references.md
-│   └── roadmap.md
+│   └── development/
 ├── examples/
 ├── src/
 │   ├── main/
@@ -247,31 +257,16 @@ Actual screenshots are not committed yet. Placeholder capture list:
 └── templates/
 ```
 
-## Roadmap
-
-1. Foundation, domain, calculation, and validation: implemented.
-2. Excel contract validation and reader: implemented.
-3. XML DTOs, XSD validation, and writer: implemented.
-4. XML reader and domain mapping: implemented.
-5. Excel writer: implemented.
-6. Conversion services and round-trip tests: implemented.
-7. Structured error reporting improvements: implemented.
-8. Swing user interface: implemented.
-9. Packaging and project polish: implemented.
-
-See `docs/roadmap.md` for more detail.
-
 ## Limitations
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No installer, code signing, or auto-update yet.
+- No digital signature, fiscal signing, or government service integration.
+- No installer, code signing, or auto-update.
+- No database or network service.
+- No generic column mapping screen.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
-- Screenshots are documented as placeholders until real UI screenshots are captured.
-
-## Contributing
-
-Contributions should keep the project aligned with the fixed contracts and incremental roadmap. See `CONTRIBUTING.md`.
+- No discounts, allowances, charges, withholding, exemptions, shipping data, attachments, or multiple tax types per line in v1.
 
 ## License
 
