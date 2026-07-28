@@ -16,6 +16,7 @@ public final class ConversionViewModel {
     private Path outputPath;
     private boolean running;
     private String status = "Ready.";
+    private ConversionStatusSeverity statusSeverity = ConversionStatusSeverity.INFO;
     private ConversionRecordCounts recordCounts = ConversionRecordCounts.empty();
     private List<ValidationError> errors = List.of();
 
@@ -56,7 +57,17 @@ public final class ConversionViewModel {
     }
 
     public void setStatus(String status) {
+        setStatus(status, ConversionStatusSeverity.INFO);
+    }
+
+    public ConversionStatusSeverity statusSeverity() {
+        return statusSeverity;
+    }
+
+    public void setStatus(String status, ConversionStatusSeverity severity) {
         setProperty("status", this.status, this.status = status == null ? "" : status);
+        ConversionStatusSeverity nextSeverity = severity == null ? ConversionStatusSeverity.INFO : severity;
+        setProperty("statusSeverity", this.statusSeverity, this.statusSeverity = nextSeverity);
     }
 
     public ConversionRecordCounts recordCounts() {

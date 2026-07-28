@@ -38,12 +38,12 @@ public final class ConversionController {
         }
         ConversionRequest request = model.request();
         if (request.inputPath() == null || request.outputPath() == null) {
-            model.setStatus("Select input and output files.");
+            rejectBeforeConversion("Select input and output files.");
             model.setErrors(List.of());
             return;
         }
         if (!OutputPathExtensions.hasExtension(request.inputPath(), request.direction().inputExtension())) {
-            model.setStatus("Input file must use ." + request.direction().inputExtension() + " extension.");
+            rejectBeforeConversion("Input file must use ." + request.direction().inputExtension() + " extension.");
             model.setErrors(List.of());
             return;
         }
@@ -54,30 +54,38 @@ public final class ConversionController {
         );
         model.setOutputPath(request.outputPath());
         if (samePath(request.inputPath(), request.outputPath())) {
-            model.setStatus("Input and output files must be different.");
+            rejectBeforeConversion("Input and output files must be different.");
             model.setErrors(List.of());
             return;
         }
 
         model.setRunning(true);
-        model.setStatus("Converting...");
+        model.setStatus("Converting...", ConversionStatusSeverity.RUNNING);
         model.setRecordCounts(ConversionRecordCounts.empty());
         model.setErrors(List.of());
         executor.execute(request, this::applyResult, this::applyUnexpectedError);
+    }
+
+    private void rejectBeforeConversion(String status) {
+        model.setStatus(status, ConversionStatusSeverity.ERROR);
+        model.setRecordCounts(ConversionRecordCounts.empty());
     }
 
     private void applyResult(ConversionResult result) {
         model.setRunning(false);
         model.setRecordCounts(result.recordCounts());
         model.setErrors(result.errors());
-        model.setStatus(result.isSuccess()
-                ? "Conversion completed."
-                : "Conversion failed with " + result.errors().size() + " error(s).");
+        if (result.isSuccess()) {
+            model.setStatus("Conversion completed.", ConversionStatusSeverity.SUCCESS);
+        } else {
+            model.setStatus("Conversion failed with " + result.errors().size() + " error(s).",
+                    ConversionStatusSeverity.ERROR);
+        }
     }
 
     private void applyUnexpectedError(Exception exception) {
         model.setRunning(false);
-        model.setStatus("Conversion failed unexpectedly: " + exception.getMessage());
+        model.setStatus("Conversion failed unexpectedly: " + exception.getMessage(), ConversionStatusSeverity.ERROR);
     }
 
     public void updateDirection(ConversionDirection direction) {
@@ -92,27 +100,27 @@ public final class ConversionController {
 
     public void saveErrorReport(Path outputPath) {
         if (outputPath == null) {
-            model.setStatus("Select an error report output file.");
+            model.setStatus("Select an error report output file.", ConversionStatusSeverity.ERROR);
             return;
         }
         try {
             errorReportWriter.writeCsv(model.errors(), outputPath);
-            model.setStatus("Error report saved.");
+            model.setStatus("Error report saved.", ConversionStatusSeverity.SUCCESS);
         } catch (IOException | RuntimeException exception) {
-            model.setStatus("Error report could not be saved: " + exception.getMessage());
+            model.setStatus("Error report could not be saved: " + exception.getMessage(), ConversionStatusSeverity.ERROR);
         }
     }
 
     public void saveTemplate(Path outputPath) {
         if (outputPath == null) {
-            model.setStatus("Select a template output file.");
+            model.setStatus("Select a template output file.", ConversionStatusSeverity.ERROR);
             return;
         }
         try {
             templateWriter.write(OutputPathExtensions.withExpectedExtension(outputPath, "xlsx"));
-            model.setStatus("Excel template saved.");
+            model.setStatus("Excel template saved.", ConversionStatusSeverity.SUCCESS);
         } catch (IOException | RuntimeException exception) {
-            model.setStatus("Excel template could not be saved: " + exception.getMessage());
+            model.setStatus("Excel template could not be saved: " + exception.getMessage(), ConversionStatusSeverity.ERROR);
         }
     }
 

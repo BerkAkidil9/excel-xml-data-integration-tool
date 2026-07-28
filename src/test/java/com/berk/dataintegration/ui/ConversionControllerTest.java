@@ -34,6 +34,7 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Select input and output files.", model.status());
+        assertEquals(ConversionStatusSeverity.ERROR, model.statusSeverity());
         assertEquals(0, executor.calls);
     }
 
@@ -47,6 +48,7 @@ class ConversionControllerTest {
 
         assertTrue(model.running());
         assertEquals("Converting...", model.status());
+        assertEquals(ConversionStatusSeverity.RUNNING, model.statusSeverity());
         assertEquals(1, executor.calls);
         assertEquals(ConversionDirection.EXCEL_TO_XML, executor.request.direction());
         assertEquals(Path.of("input.xlsx"), executor.request.inputPath());
@@ -97,6 +99,7 @@ class ConversionControllerTest {
         ConversionViewModel model = new ConversionViewModel();
         model.setInputPath(Path.of("input.xml"));
         model.setOutputPath(Path.of("output.xml"));
+        model.setRecordCounts(new ConversionRecordCounts(9, 9, 9, 9));
         RecordingExecutor executor = new RecordingExecutor();
         ConversionController controller = new ConversionController(model, executor);
 
@@ -104,6 +107,8 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Input file must use .xlsx extension.", model.status());
+        assertEquals(ConversionStatusSeverity.ERROR, model.statusSeverity());
+        assertEquals(ConversionRecordCounts.empty(), model.recordCounts());
         assertEquals(0, executor.calls);
     }
 
@@ -123,6 +128,7 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Conversion completed.", model.status());
+        assertEquals(ConversionStatusSeverity.SUCCESS, model.statusSeverity());
         assertEquals(new ConversionRecordCounts(2, 1, 3, 4), model.recordCounts());
         assertTrue(model.errors().isEmpty());
     }
@@ -150,6 +156,7 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Conversion failed with 1 error(s).", model.status());
+        assertEquals(ConversionStatusSeverity.ERROR, model.statusSeverity());
         assertEquals(List.of(error), model.errors());
     }
 
@@ -164,6 +171,7 @@ class ConversionControllerTest {
 
         assertFalse(model.running());
         assertEquals("Conversion failed unexpectedly: boom", model.status());
+        assertEquals(ConversionStatusSeverity.ERROR, model.statusSeverity());
     }
 
     @Test
@@ -184,6 +192,7 @@ class ConversionControllerTest {
         controller.saveErrorReport(report);
 
         assertEquals("Error report saved.", model.status());
+        assertEquals(ConversionStatusSeverity.SUCCESS, model.statusSeverity());
         String csv = Files.readString(report, StandardCharsets.UTF_8);
         assertTrue(csv.contains("REQUIRED_FIELD,FIELD,invoiceNumber,INV-1"), csv);
     }
@@ -198,6 +207,7 @@ class ConversionControllerTest {
         controller.saveTemplate(template);
 
         assertEquals("Excel template saved.", model.status());
+        assertEquals(ConversionStatusSeverity.SUCCESS, model.statusSeverity());
         assertTrue(Files.exists(tempDir.resolve("invoice-template.xlsx")));
     }
 

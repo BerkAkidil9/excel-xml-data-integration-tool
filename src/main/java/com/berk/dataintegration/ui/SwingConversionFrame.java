@@ -14,18 +14,21 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class SwingConversionFrame extends JFrame {
     private final ConversionViewModel model;
@@ -36,10 +39,16 @@ public final class SwingConversionFrame extends JFrame {
     private final JButton convertButton = new JButton("Convert");
     private final JButton saveErrorReportButton = new JButton("Save Error Report");
     private final JButton saveTemplateButton = new JButton("Save Excel Template");
+    private final JButton copySelectedErrorButton = new JButton("Copy Selected Error");
+    private final JComboBox<ErrorCategoryFilter> errorFilterSelector = new JComboBox<>(ErrorCategoryFilter.values());
     private final JProgressBar progressBar = new JProgressBar();
+    private final JPanel statusBanner = new JPanel(new BorderLayout());
     private final JLabel statusLabel = new JLabel();
     private final JLabel countsLabel = new JLabel();
     private final ErrorTableModel errorTableModel = new ErrorTableModel();
+    private final JTable errorTable = new JTable(errorTableModel);
+    private final TableRowSorter<ErrorTableModel> errorSorter = new TableRowSorter<>(errorTableModel);
+    private final JTextArea errorDetailArea = new JTextArea(6, 80);
 
     public SwingConversionFrame(ConversionViewModel model, ConversionController controller) {
         super("Excel/XML Data Integration Tool");
@@ -58,7 +67,7 @@ public final class SwingConversionFrame extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(12, 12));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         panel.add(formPanel(), BorderLayout.NORTH);
-        panel.add(new JScrollPane(new JTable(errorTableModel)), BorderLayout.CENTER);
+        panel.add(errorPanel(), BorderLayout.CENTER);
         panel.add(statusPanel(), BorderLayout.SOUTH);
         return panel;
     }
@@ -103,11 +112,52 @@ public final class SwingConversionFrame extends JFrame {
         return panel;
     }
 
+    private JPanel errorPanel() {
+        configureErrorTable();
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+        JPanel toolbar = new JPanel(new BorderLayout(8, 8));
+        toolbar.add(new JLabel("Error Filter"), BorderLayout.WEST);
+        toolbar.add(errorFilterSelector, BorderLayout.CENTER);
+        toolbar.add(copySelectedErrorButton, BorderLayout.EAST);
+        panel.add(toolbar, BorderLayout.NORTH);
+        panel.add(new JScrollPane(errorTable), BorderLayout.CENTER);
+
+        errorDetailArea.setEditable(false);
+        errorDetailArea.setLineWrap(true);
+        errorDetailArea.setWrapStyleWord(true);
+        JScrollPane detailScrollPane = new JScrollPane(errorDetailArea);
+        detailScrollPane.setBorder(BorderFactory.createTitledBorder("Error Details"));
+        panel.add(detailScrollPane, BorderLayout.SOUTH);
+
+        errorFilterSelector.addActionListener(event -> applyErrorFilter());
+        copySelectedErrorButton.addActionListener(event -> copySelectedError());
+        errorTable.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting()) {
+                updateSelectedErrorDetail();
+            }
+        });
+        return panel;
+    }
+
+    private void configureErrorTable() {
+        errorTable.setRowSorter(errorSorter);
+        errorTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        errorTable.setFillsViewportHeight(true);
+        TableColumnModel columns = errorTable.getColumnModel();
+        int[] widths = {150, 120, 120, 140, 150, 220, 70, 80, 180, 360};
+        for (int i = 0; i < widths.length; i++) {
+            columns.getColumn(i).setPreferredWidth(widths[i]);
+        }
+    }
+
     private JPanel statusPanel() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         progressBar.setIndeterminate(true);
+        statusBanner.setOpaque(true);
+        statusBanner.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        statusBanner.add(statusLabel, BorderLayout.CENTER);
         panel.add(progressBar, BorderLayout.NORTH);
-        panel.add(statusLabel, BorderLayout.CENTER);
+        panel.add(statusBanner, BorderLayout.CENTER);
         panel.add(countsLabel, BorderLayout.SOUTH);
         return panel;
     }
@@ -225,9 +275,55 @@ public final class SwingConversionFrame extends JFrame {
         saveTemplateButton.setEnabled(!model.running());
         saveErrorReportButton.setEnabled(!model.running() && !model.errors().isEmpty());
         progressBar.setVisible(model.running());
-        statusLabel.setText(model.status());
+        applyStatusPresentation();
         countsLabel.setText(countsText(model.recordCounts()));
         errorTableModel.setErrors(model.errors());
+        applyErrorFilter();
+        updateSelectedErrorDetail();
+    }
+
+    private void applyStatusPresentation() {
+        ConversionStatusSeverity severity = model.statusSeverity();
+        statusLabel.setText(statusText(severity, model.status()));
+        if (severity == ConversionStatusSeverity.ERROR) {
+            statusBanner.setBackground(new Color(255, 235, 238));
+            statusBanner.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(198, 40, 40)),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            ));
+            statusLabel.setForeground(new Color(120, 20, 20));
+        } else if (severity == ConversionStatusSeverity.SUCCESS) {
+            statusBanner.setBackground(new Color(232, 245, 233));
+            statusBanner.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(46, 125, 50)),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            ));
+            statusLabel.setForeground(new Color(27, 94, 32));
+        } else if (severity == ConversionStatusSeverity.RUNNING) {
+            statusBanner.setBackground(new Color(232, 240, 254));
+            statusBanner.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(66, 133, 244)),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            ));
+            statusLabel.setForeground(new Color(23, 78, 166));
+        } else {
+            statusBanner.setBackground(getBackground());
+            statusBanner.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+            statusLabel.setForeground(Color.BLACK);
+        }
+    }
+
+    private String statusText(ConversionStatusSeverity severity, String status) {
+        if (severity == ConversionStatusSeverity.ERROR) {
+            return "ERROR: " + status;
+        }
+        if (severity == ConversionStatusSeverity.SUCCESS) {
+            return "SUCCESS: " + status;
+        }
+        if (severity == ConversionStatusSeverity.RUNNING) {
+            return "WORKING: " + status;
+        }
+        return status;
     }
 
     private String countsText(ConversionRecordCounts counts) {
@@ -245,48 +341,40 @@ public final class SwingConversionFrame extends JFrame {
         }
     }
 
-    private static final class ErrorTableModel extends AbstractTableModel {
-        private static final String[] COLUMNS = {
-                "Code", "Category", "Field", "Record", "Source", "Sheet/Path", "Row", "Column", "Value", "Message"
-        };
-        private List<ValidationError> errors = new ArrayList<>();
-
-        void setErrors(List<ValidationError> errors) {
-            this.errors = errors == null ? List.of() : List.copyOf(errors);
-            fireTableDataChanged();
+    private void applyErrorFilter() {
+        ErrorCategoryFilter selected = (ErrorCategoryFilter) errorFilterSelector.getSelectedItem();
+        ErrorCategoryFilter filter = selected == null ? ErrorCategoryFilter.ALL : selected;
+        errorSorter.setRowFilter(new javax.swing.RowFilter<>() {
+            @Override
+            public boolean include(Entry<? extends ErrorTableModel, ? extends Integer> entry) {
+                return filter.accepts(entry.getModel().errorAt(entry.getIdentifier()));
+            }
+        });
+        if (errorTable.getRowCount() > 0 && errorTable.getSelectedRow() < 0) {
+            errorTable.setRowSelectionInterval(0, 0);
         }
+    }
 
-        @Override
-        public int getRowCount() {
-            return errors.size();
-        }
+    private void updateSelectedErrorDetail() {
+        ValidationError selectedError = selectedError();
+        errorDetailArea.setText(ErrorDetailFormatter.format(selectedError));
+        errorDetailArea.setCaretPosition(0);
+        copySelectedErrorButton.setEnabled(!model.running() && selectedError != null);
+    }
 
-        @Override
-        public int getColumnCount() {
-            return COLUMNS.length;
+    private ValidationError selectedError() {
+        int selectedRow = errorTable.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
         }
+        return errorTableModel.errorAt(errorTable.convertRowIndexToModel(selectedRow));
+    }
 
-        @Override
-        public String getColumnName(int column) {
-            return COLUMNS[column];
+    private void copySelectedError() {
+        String text = ErrorDetailFormatter.format(selectedError());
+        if (text.isBlank()) {
+            return;
         }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            ValidationError error = errors.get(rowIndex);
-            return switch (columnIndex) {
-                case 0 -> error.code();
-                case 1 -> error.category();
-                case 2 -> error.field();
-                case 3 -> error.recordId();
-                case 4 -> error.sourceFile();
-                case 5 -> error.sheet();
-                case 6 -> error.row();
-                case 7 -> error.column();
-                case 8 -> error.value();
-                case 9 -> error.message();
-                default -> "";
-            };
-        }
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
     }
 }

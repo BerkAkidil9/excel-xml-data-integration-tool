@@ -24,7 +24,7 @@ Phases 1 through 9 are implemented:
 - Excel-to-XML and XML-to-Excel conversion orchestration services with temporary output files, final-output replacement, record counts, and structured errors.
 - Presentation-friendly conversion reports with success/failure state, record counts, ordered errors, grouped errors, and stable error categories.
 - Dependency-free CLI for conversion automation, CSV error reports, and blank Excel template generation.
-- Small Swing UI over the tested conversion services, with direction selection, file choosers, output path suggestions, overwrite confirmation, progress/status, counts, structured error display, CSV error report export, and Excel template saving.
+- Small Swing UI over the tested conversion services, with direction selection, file choosers, output path suggestions, overwrite confirmation, progress/status, counts, sortable and filterable structured error display, selected-error details, selected-error copy, CSV error report export, and Excel template saving.
 - Maven packaging for a runnable Swing application jar.
 - GitHub Actions verification and Maven Enforcer build-environment checks.
 - JUnit tests for calculation, validation, Excel reader, Excel writer, XML writer, XML reader, conversion behavior, and stable UI controller/view-model behavior.
@@ -265,7 +265,7 @@ See `docs/roadmap.md` for more detail.
 
 - Not a legally compliant e-invoice product.
 - No UBL, UBL-TR, Peppol, or GIB integration.
-- No installer, code signing, auto-update, or CLI yet.
+- No installer, code signing, or auto-update yet.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
 - Screenshots are documented as placeholders until real UI screenshots are captured.
 

@@ -30,6 +30,23 @@ class ConversionViewModelTest {
     }
 
     @Test
+    void defaultsStatusSeverityToInfo() {
+        ConversionViewModel model = new ConversionViewModel();
+
+        assertEquals(ConversionStatusSeverity.INFO, model.statusSeverity());
+    }
+
+    @Test
+    void storesStatusSeverityWithStatusText() {
+        ConversionViewModel model = new ConversionViewModel();
+
+        model.setStatus("Failed.", ConversionStatusSeverity.ERROR);
+
+        assertEquals("Failed.", model.status());
+        assertEquals(ConversionStatusSeverity.ERROR, model.statusSeverity());
+    }
+
+    @Test
     void protectsErrorListFromExternalMutation() {
         ConversionViewModel model = new ConversionViewModel();
         List<ValidationError> errors = new ArrayList<>();
@@ -54,9 +71,9 @@ class ConversionViewModelTest {
         AtomicInteger changes = new AtomicInteger();
         model.addPropertyChangeListener(event -> changes.incrementAndGet());
 
-        model.setStatus("Working");
+        model.setStatus("Working", ConversionStatusSeverity.RUNNING);
         model.setRecordCounts(new ConversionRecordCounts(1, 2, 3, 4));
 
-        assertEquals(2, changes.get());
+        assertEquals(3, changes.get());
     }
 }
