@@ -1,16 +1,16 @@
 # Excel/XML Data Integration Tool
 
-A desktop and command-line application for converting invoice data between the project's predefined Excel workbook format and XML `invoice-data-v1` format.
+A desktop and command-line application for converting invoice data between the project's predefined Excel workbook format and its matching XML format.
 
-The application focuses on a predefined invoice data exchange format. It is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
+The XML format is versioned as `invoice-data-v1` and defined by the repository schema. The application is intentionally not a generic Excel/XML mapper and does not claim legal e-invoice, UBL, UBL-TR, Peppol, or GIB compliance.
 
 ## Status
 
-The v1 scope is implemented:
+The first supported version is implemented:
 
-- Excel `.xlsx` contract validation, reading, and writing with Apache POI.
+- Excel `.xlsx` format validation, reading, and writing with Apache POI.
 - XML reading and writing with Jakarta XML Binding.
-- XSD validation for the repository-defined `invoice-data-v1` XML format.
+- XSD validation for the project's XML format.
 - Domain and business validation for parties, payment accounts, invoices, references, dates, currencies, and invoice lines.
 - Central monetary calculation with `BigDecimal`, scale 2, and `RoundingMode.HALF_UP`.
 - Structured conversion errors with stable codes, categories, source locations, fields, record identifiers, and offending values where available.
@@ -18,7 +18,7 @@ The v1 scope is implemented:
 - CLI support for conversion, CSV error reports, and blank Excel template generation.
 - Swing UI for local desktop use.
 - Maven packaging for a runnable application jar.
-- GitHub Actions verification with Java 21 and `./mvnw verify`.
+- GitHub Actions verification with the Maven Wrapper.
 
 The application is packaged as a runnable local desktop application. It is not distributed as a signed installer and does not include auto-update support.
 
@@ -27,12 +27,12 @@ The application is packaged as a runnable local desktop application. It is not d
 - Bidirectional conversion:
   - Excel to XML
   - XML to Excel
-- Fixed Excel workbook structure:
+- Required Excel workbook sheets:
   - `Parties`
   - `PaymentAccounts`
   - `Invoices`
   - `InvoiceLines`
-- Fixed XML namespace:
+- XML namespace used by this project:
   - `urn:berk:excel-xml-integration:invoice:v1`
 - Secure XML parsing:
   - DOCTYPE rejected
@@ -108,11 +108,11 @@ More detail:
 
 ## Data Formats
 
-The repository defines one logical invoice data contract:
+The repository defines one invoice data format with matching Excel and XML representations:
 
-- Shared domain and validation contract: `docs/data-format/data-contract.md`
-- Excel workbook contract: `docs/data-format/excel-format.md`
-- XML contract: `docs/data-format/xml-format.md`
+- Shared domain and validation rules: `docs/data-format/data-contract.md`
+- Excel workbook format: `docs/data-format/excel-format.md`
+- XML format: `docs/data-format/xml-format.md`
 - XML Schema: `src/main/resources/schema/invoice-data-v1.xsd`
 
 Useful files:
@@ -266,7 +266,7 @@ The automated tests cover calculation, validation, Excel reader/writer behavior,
 - No database or network service.
 - No generic column mapping screen.
 - No full IBAN checksum, national tax-number algorithm, or complete ISO currency database.
-- No discounts, allowances, charges, withholding, exemptions, shipping data, attachments, or multiple tax types per line in v1.
+- No discounts, allowances, charges, withholding, exemptions, shipping data, attachments, or multiple tax types per line in the first supported version.
 
 ## License
 
