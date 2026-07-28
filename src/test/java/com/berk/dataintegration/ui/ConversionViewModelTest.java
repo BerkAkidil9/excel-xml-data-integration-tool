@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ConversionViewModelTest {
@@ -75,5 +77,35 @@ class ConversionViewModelTest {
         model.setRecordCounts(new ConversionRecordCounts(1, 2, 3, 4));
 
         assertEquals(3, changes.get());
+    }
+
+    @Test
+    void resetRestoresInitialUiState() {
+        ConversionViewModel model = new ConversionViewModel();
+        ValidationError error = ValidationError.of(
+                ValidationCode.REQUIRED_FIELD,
+                ValidationCategory.FIELD,
+                "Missing.",
+                "invoiceNumber",
+                "INV-1"
+        );
+        model.setDirection(ConversionDirection.XML_TO_EXCEL);
+        model.setInputPath(Path.of("input.xml"));
+        model.setOutputPath(Path.of("output.xlsx"));
+        model.setRunning(true);
+        model.setStatus("Failed.", ConversionStatusSeverity.ERROR);
+        model.setRecordCounts(new ConversionRecordCounts(1, 2, 3, 4));
+        model.setErrors(List.of(error));
+
+        model.reset();
+
+        assertEquals(ConversionDirection.EXCEL_TO_XML, model.direction());
+        assertNull(model.inputPath());
+        assertNull(model.outputPath());
+        assertFalse(model.running());
+        assertEquals("Ready.", model.status());
+        assertEquals(ConversionStatusSeverity.INFO, model.statusSeverity());
+        assertEquals(ConversionRecordCounts.empty(), model.recordCounts());
+        assertEquals(List.of(), model.errors());
     }
 }

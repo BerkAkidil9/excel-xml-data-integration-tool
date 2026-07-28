@@ -15,8 +15,9 @@ The first supported version is implemented:
 - Central monetary calculation with `BigDecimal`, scale 2, and `RoundingMode.HALF_UP`.
 - Structured conversion errors with stable codes, categories, source locations, fields, record identifiers, and offending values where available.
 - Excel to XML and XML to Excel conversion services with temporary output handling.
-- CLI support for conversion, CSV error reports, and blank Excel template generation.
+- CLI support for conversion, CSV error reports with summary and detail sections, and blank Excel template generation.
 - Swing UI for local desktop use.
+- Swing file chooser navigation, reset behavior, automatic output suggestions, and structured error review helpers.
 - Maven packaging for a runnable application jar.
 - GitHub Actions verification with the Maven Wrapper.
 
@@ -52,9 +53,14 @@ The application is packaged as a runnable local desktop application. It is not d
   - calculated total mismatches
 - Output helpers:
   - runnable application jar
-  - CSV error report export
+  - CSV error report export with grouped summary and detail rows
   - blank Excel template generation
   - sample valid Excel and XML files
+- Desktop workflow helpers:
+  - reset button for clearing the current UI state
+  - automatic output path suggestions that update when the input changes while the output is still auto-generated
+  - file chooser folder Back/Forward navigation
+  - compact grouped error summary above the error table
 
 ## Technology Stack
 
@@ -191,6 +197,9 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   --error-report errors.csv
 ```
 
+The generated CSV starts with a total error count and grouped error summary, then includes the detailed structured error rows.
+One `--error-report` path writes all errors from that conversion into the same CSV file; it does not create one report per error.
+
 Create a blank Excel workbook template:
 
 ```bash
@@ -211,16 +220,20 @@ The Swing UI supports:
 
 - direction selection
 - input and output file choosers
-- automatic output path suggestions
+- file chooser folder Back/Forward navigation
+- automatic output path suggestions that update after input changes unless the output was manually customized
+- reset button for clearing selected paths, status, counts, and errors
 - overwrite confirmation
 - background conversion work
 - progress and status display
 - record counts
-- structured validation error table
+- structured validation error table with a compact grouped summary
 - error filtering and selected-error details
 - selected-error copy
-- CSV error report export
+- CSV error report export with grouped summary and details
 - Excel template saving
+
+`Save Error Report` writes the full current error list into one CSV file. The file contains a total count, grouped summary rows, and detailed rows for every displayed error.
 
 The application validates input before writing output. Failed conversions should not leave partial output behind.
 
@@ -238,7 +251,7 @@ Run the full verification build:
 ./mvnw verify
 ```
 
-The automated tests cover calculation, validation, Excel reader/writer behavior, XML reader/writer behavior, conversion services, CLI behavior, and stable Swing controller/view-model behavior.
+The automated tests cover calculation, validation, Excel reader/writer behavior, XML reader/writer behavior, conversion services, CLI behavior, error reports, and stable Swing controller/view-model/UI helper behavior.
 
 ## Project Structure
 

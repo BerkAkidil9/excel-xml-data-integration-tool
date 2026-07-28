@@ -10,12 +10,15 @@ import java.util.List;
 import java.util.Objects;
 
 public final class ConversionViewModel {
+    private static final ConversionDirection DEFAULT_DIRECTION = ConversionDirection.EXCEL_TO_XML;
+    private static final String DEFAULT_STATUS = "Ready.";
+
     private final PropertyChangeSupport changes = new PropertyChangeSupport(this);
-    private ConversionDirection direction = ConversionDirection.EXCEL_TO_XML;
+    private ConversionDirection direction = DEFAULT_DIRECTION;
     private Path inputPath;
     private Path outputPath;
     private boolean running;
-    private String status = "Ready.";
+    private String status = DEFAULT_STATUS;
     private ConversionStatusSeverity statusSeverity = ConversionStatusSeverity.INFO;
     private ConversionRecordCounts recordCounts = ConversionRecordCounts.empty();
     private List<ValidationError> errors = List.of();
@@ -90,6 +93,20 @@ public final class ConversionViewModel {
 
     public ConversionRequest request() {
         return new ConversionRequest(direction, inputPath, outputPath);
+    }
+
+    public void reset() {
+        setDirection(DEFAULT_DIRECTION);
+        setInputPath(null);
+        setOutputPath(null);
+        setRunning(false);
+        clearConversionOutput();
+    }
+
+    public void clearConversionOutput() {
+        setStatus(DEFAULT_STATUS, ConversionStatusSeverity.INFO);
+        setRecordCounts(ConversionRecordCounts.empty());
+        setErrors(List.of());
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

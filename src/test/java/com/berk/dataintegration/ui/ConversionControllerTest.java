@@ -83,6 +83,19 @@ class ConversionControllerTest {
     }
 
     @Test
+    void updatesSuggestedOutputPathWhenInputChanges() {
+        ConversionViewModel model = new ConversionViewModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        controller.updateInputPath(Path.of("first.xlsx"));
+
+        controller.updateInputPath(Path.of("second.xlsx"));
+
+        assertEquals(Path.of("second.xlsx"), model.inputPath());
+        assertEquals(Path.of("second.xml"), model.outputPath());
+    }
+
+    @Test
     void keepsExistingOutputPathWhenInputChanges() {
         ConversionViewModel model = new ConversionViewModel();
         model.setOutputPath(Path.of("custom.xml"));
@@ -92,6 +105,32 @@ class ConversionControllerTest {
         controller.updateInputPath(Path.of("invoice.xlsx"));
 
         assertEquals(Path.of("custom.xml"), model.outputPath());
+    }
+
+    @Test
+    void clearsSuggestedOutputPathWhenInputIsCleared() {
+        ConversionViewModel model = new ConversionViewModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        controller.updateInputPath(Path.of("invoice.xlsx"));
+
+        controller.updateInputPath(null);
+
+        assertNull(model.inputPath());
+        assertNull(model.outputPath());
+    }
+
+    @Test
+    void updatesSuggestedOutputPathWhenDirectionChanges() {
+        ConversionViewModel model = new ConversionViewModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        controller.updateInputPath(Path.of("invoice.xlsx"));
+
+        controller.updateDirection(ConversionDirection.XML_TO_EXCEL);
+
+        assertEquals(Path.of("invoice.xlsx"), model.inputPath());
+        assertEquals(Path.of("invoice.xlsx"), model.outputPath());
     }
 
     @Test
@@ -209,6 +248,51 @@ class ConversionControllerTest {
         assertEquals("Excel template saved.", model.status());
         assertEquals(ConversionStatusSeverity.SUCCESS, model.statusSeverity());
         assertTrue(Files.exists(tempDir.resolve("invoice-template.xlsx")));
+    }
+
+    @Test
+    void resetClearsFinishedConversionState() {
+        ConversionViewModel model = readyModel();
+        ValidationError error = ValidationError.of(
+                ValidationCode.REQUIRED_FIELD,
+                ValidationCategory.FIELD,
+                "Missing.",
+                "invoiceNumber",
+                "INV-1"
+        );
+        model.setDirection(ConversionDirection.XML_TO_EXCEL);
+        model.setStatus("Conversion failed with 1 error(s).", ConversionStatusSeverity.ERROR);
+        model.setRecordCounts(new ConversionRecordCounts(1, 2, 3, 4));
+        model.setErrors(List.of(error));
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+
+        controller.reset();
+
+        assertEquals(ConversionDirection.EXCEL_TO_XML, model.direction());
+        assertNull(model.inputPath());
+        assertNull(model.outputPath());
+        assertFalse(model.running());
+        assertEquals("Ready.", model.status());
+        assertEquals(ConversionStatusSeverity.INFO, model.statusSeverity());
+        assertEquals(ConversionRecordCounts.empty(), model.recordCounts());
+        assertTrue(model.errors().isEmpty());
+    }
+
+    @Test
+    void resetDoesNotClearStateDuringRunningConversion() {
+        ConversionViewModel model = readyModel();
+        RecordingExecutor executor = new RecordingExecutor();
+        ConversionController controller = new ConversionController(model, executor);
+        controller.convert();
+
+        controller.reset();
+
+        assertTrue(model.running());
+        assertEquals(Path.of("input.xlsx"), model.inputPath());
+        assertEquals(Path.of("output.xml"), model.outputPath());
+        assertEquals("Converting...", model.status());
+        assertEquals(ConversionStatusSeverity.RUNNING, model.statusSeverity());
     }
 
     private ConversionViewModel readyModel() {

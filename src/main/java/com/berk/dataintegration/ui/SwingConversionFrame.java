@@ -37,6 +37,7 @@ public final class SwingConversionFrame extends JFrame {
     private final JTextField inputField = new JTextField();
     private final JTextField outputField = new JTextField();
     private final JButton convertButton = new JButton("Convert");
+    private final JButton resetButton = new JButton("Reset");
     private final JButton saveErrorReportButton = new JButton("Save Error Report");
     private final JButton saveTemplateButton = new JButton("Save Excel Template");
     private final JButton copySelectedErrorButton = new JButton("Copy Selected Error");
@@ -45,6 +46,7 @@ public final class SwingConversionFrame extends JFrame {
     private final JPanel statusBanner = new JPanel(new BorderLayout());
     private final JLabel statusLabel = new JLabel();
     private final JLabel countsLabel = new JLabel();
+    private final JLabel errorSummaryLabel = new JLabel();
     private final ErrorTableModel errorTableModel = new ErrorTableModel();
     private final JTable errorTable = new JTable(errorTableModel);
     private final TableRowSorter<ErrorTableModel> errorSorter = new TableRowSorter<>(errorTableModel);
@@ -97,11 +99,13 @@ public final class SwingConversionFrame extends JFrame {
 
         add(panel, constraints, 0, 3, 0, saveTemplateButton);
         add(panel, constraints, 1, 3, 0, saveErrorReportButton);
-        add(panel, constraints, 2, 3, 0, convertButton);
+        add(panel, constraints, 2, 3, 0, resetButton);
+        add(panel, constraints, 3, 3, 0, convertButton);
 
         directionSelector.addActionListener(event -> controller.updateDirection((ConversionDirection) directionSelector.getSelectedItem()));
         saveTemplateButton.addActionListener(event -> saveTemplate());
         saveErrorReportButton.addActionListener(event -> saveErrorReport());
+        resetButton.addActionListener(event -> controller.reset());
         convertButton.addActionListener(event -> {
             syncPathsFromFields();
             if (!confirmOverwrite(model.outputPath())) {
@@ -115,11 +119,15 @@ public final class SwingConversionFrame extends JFrame {
     private JPanel errorPanel() {
         configureErrorTable();
         JPanel panel = new JPanel(new BorderLayout(8, 8));
+        JPanel topPanel = new JPanel(new BorderLayout(8, 6));
         JPanel toolbar = new JPanel(new BorderLayout(8, 8));
+        errorSummaryLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         toolbar.add(new JLabel("Error Filter"), BorderLayout.WEST);
         toolbar.add(errorFilterSelector, BorderLayout.CENTER);
         toolbar.add(copySelectedErrorButton, BorderLayout.EAST);
-        panel.add(toolbar, BorderLayout.NORTH);
+        topPanel.add(errorSummaryLabel, BorderLayout.NORTH);
+        topPanel.add(toolbar, BorderLayout.SOUTH);
+        panel.add(topPanel, BorderLayout.NORTH);
         panel.add(new JScrollPane(errorTable), BorderLayout.CENTER);
 
         errorDetailArea.setEditable(false);
@@ -226,20 +234,38 @@ public final class SwingConversionFrame extends JFrame {
     }
 
     private JFileChooser chooser(String extension) {
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new NavigationFileChooser();
         chooser.setFileFilter(new FileNameExtensionFilter("*." + extension, extension));
         return chooser;
     }
 
     private void syncPathsFromFields() {
+        Path previousInputPath = model.inputPath();
+        Path previousOutputPath = model.outputPath();
         Path inputPath = path(inputField.getText());
         Path typedOutputPath = path(outputField.getText());
         controller.updateInputPath(inputPath);
-        Path outputPath = typedOutputPath == null
-                ? model.outputPath()
-                : OutputPathExtensions.withExpectedExtension(typedOutputPath, model.direction().outputExtension());
+        Path outputPath = outputPathAfterInputSync(previousInputPath, previousOutputPath, typedOutputPath);
         outputField.setText(outputPath == null ? "" : outputPath.toString());
         model.setOutputPath(outputPath);
+    }
+
+    private Path outputPathAfterInputSync(Path previousInputPath, Path previousOutputPath, Path typedOutputPath) {
+        if (typedOutputPath == null) {
+            return model.outputPath();
+        }
+        if (isStaleSuggestedOutput(previousInputPath, previousOutputPath, typedOutputPath)) {
+            return model.outputPath();
+        }
+        return OutputPathExtensions.withExpectedExtension(typedOutputPath, model.direction().outputExtension());
+    }
+
+    private boolean isStaleSuggestedOutput(Path previousInputPath, Path previousOutputPath, Path typedOutputPath) {
+        return previousInputPath != null
+                && previousOutputPath != null
+                && previousOutputPath.equals(typedOutputPath)
+                && OutputPathExtensions.replaceExtension(previousInputPath, model.direction().outputExtension())
+                .equals(previousOutputPath);
     }
 
     private boolean confirmOverwrite(Path path) {
@@ -272,11 +298,13 @@ public final class SwingConversionFrame extends JFrame {
         inputField.setText(model.inputPath() == null ? "" : model.inputPath().toString());
         outputField.setText(model.outputPath() == null ? "" : model.outputPath().toString());
         convertButton.setEnabled(!model.running());
+        resetButton.setEnabled(!model.running());
         saveTemplateButton.setEnabled(!model.running());
         saveErrorReportButton.setEnabled(!model.running() && !model.errors().isEmpty());
         progressBar.setVisible(model.running());
         applyStatusPresentation();
         countsLabel.setText(countsText(model.recordCounts()));
+        errorSummaryLabel.setText(ErrorSummaryFormatter.format(model.errors()));
         errorTableModel.setErrors(model.errors());
         applyErrorFilter();
         updateSelectedErrorDetail();

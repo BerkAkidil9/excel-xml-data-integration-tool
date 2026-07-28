@@ -89,13 +89,25 @@ public final class ConversionController {
     }
 
     public void updateDirection(ConversionDirection direction) {
+        ConversionDirection previousDirection = model.direction();
+        Path previousInputPath = model.inputPath();
+        Path previousOutputPath = model.outputPath();
         model.setDirection(direction);
-        suggestOutputPathIfEmpty();
+        suggestOutputPathAfterDirectionChange(previousDirection, previousInputPath, previousOutputPath);
     }
 
     public void updateInputPath(Path inputPath) {
+        Path previousInputPath = model.inputPath();
+        Path previousOutputPath = model.outputPath();
         model.setInputPath(inputPath);
-        suggestOutputPathIfEmpty();
+        suggestOutputPathAfterInputChange(previousInputPath, previousOutputPath);
+    }
+
+    public void reset() {
+        if (model.running()) {
+            return;
+        }
+        model.reset();
     }
 
     public void saveErrorReport(Path outputPath) {
@@ -124,10 +136,39 @@ public final class ConversionController {
         }
     }
 
-    private void suggestOutputPathIfEmpty() {
-        if (model.inputPath() != null && model.outputPath() == null) {
-            model.setOutputPath(OutputPathExtensions.replaceExtension(model.inputPath(), model.direction().outputExtension()));
+    private void suggestOutputPathAfterDirectionChange(
+            ConversionDirection previousDirection,
+            Path previousInputPath,
+            Path previousOutputPath
+    ) {
+        if (model.inputPath() != null
+                && (previousOutputPath == null
+                || isSuggestedOutput(previousInputPath, previousOutputPath, previousDirection.outputExtension()))) {
+            suggestOutputPathFromCurrentInput();
         }
+    }
+
+    private void suggestOutputPathAfterInputChange(Path previousInputPath, Path previousOutputPath) {
+        if (model.inputPath() == null) {
+            if (isSuggestedOutput(previousInputPath, previousOutputPath, model.direction().outputExtension())) {
+                model.setOutputPath(null);
+            }
+            return;
+        }
+        if (previousOutputPath == null
+                || isSuggestedOutput(previousInputPath, previousOutputPath, model.direction().outputExtension())) {
+            suggestOutputPathFromCurrentInput();
+        }
+    }
+
+    private void suggestOutputPathFromCurrentInput() {
+        model.setOutputPath(OutputPathExtensions.replaceExtension(model.inputPath(), model.direction().outputExtension()));
+    }
+
+    private boolean isSuggestedOutput(Path inputPath, Path outputPath, String outputExtension) {
+        return inputPath != null
+                && outputPath != null
+                && OutputPathExtensions.replaceExtension(inputPath, outputExtension).equals(outputPath);
     }
 
     private boolean samePath(Path first, Path second) {
@@ -136,4 +177,5 @@ public final class ConversionController {
         }
         return first.toAbsolutePath().normalize().equals(second.toAbsolutePath().normalize());
     }
+
 }
