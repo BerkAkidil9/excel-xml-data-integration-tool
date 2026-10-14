@@ -5,10 +5,12 @@
 - Contract name: `invoice-data-v1`
 - XML namespace: `urn:berk:excel-xml-integration:invoice:v1`
 - XML root: `InvoiceBatch`
-- Excel workbook version: `1.0`
+- Excel contract: the four sheet/header definitions documented in [excel-format.md](excel-format.md); no workbook version field is read or validated
 - XML version attribute: `1.0`
 
-The Excel and XML forms represent the same logical data.
+The Excel and XML forms represent the same logical data. This document describes the current implementation, reviewed on 2026-10-14. Field and cross-record validation is implemented in [InvoiceBatchValidator.java](../../src/main/java/com/berk/dataintegration/validation/InvoiceBatchValidator.java); XML input also has to satisfy the bundled [XSD](../../src/main/resources/schema/invoice-data-v1.xsd) before domain normalization.
+
+Domain text is trimmed. Blank optional text becomes `null`; uppercase code fields are validated rather than automatically converted to uppercase.
 
 ## 2. Domain relationships
 
@@ -35,7 +37,7 @@ Each invoice references:
 | role | PartyRole | Yes | `SUPPLIER` or `CUSTOMER` |
 | name | String | Yes | 1–200 chars |
 | taxNumber | String | No | 1–30 chars when present; no national algorithm in v1 |
-| email | String | No | Basic email shape only when present |
+| email | String | No | Max 320 chars; basic email shape only when present |
 | phone | String | No | 1–30 chars when present |
 | street | String | No | Max 250 chars |
 | city | String | Yes | 1–100 chars |
@@ -51,11 +53,13 @@ A party ID is unique across the entire batch.
 | paymentAccountId | String | Yes | Unique, 1–40 chars |
 | accountHolderName | String | Yes | 1–200 chars |
 | bankName | String | Yes | 1–200 chars |
-| iban | String | Yes | 5–34 uppercase alphanumeric chars after spaces are removed; no checksum algorithm in v1 |
+| iban | String | Yes | For Excel/XML interchange, use 5–34 uppercase alphanumeric chars without spaces; no checksum algorithm in v1 |
 | swiftCode | String | No | 8 or 11 uppercase alphanumeric chars when present |
 | currencyCode | String | Yes | Three uppercase letters |
 
 A payment account may be reused by multiple invoices.
+
+The Java field validator allows literal spaces when checking the IBAN pattern, but limits the trimmed original value to 34 characters and does not remove internal spaces from the stored value. The XML schema requires an unspaced IBAN, so a spaced Excel value can pass field validation and still fail XML generation. Use an unspaced value for both formats.
 
 ## 5. Invoice
 
@@ -92,8 +96,10 @@ Calculated values are not manually supplied in the Excel input sheets.
 For every line:
 
 ```text
-lineNetAmount = quantity × unitPrice
-lineTaxAmount = lineNetAmount × taxRate ÷ 100
+rawNetAmount = quantity × unitPrice
+rawTaxAmount = rawNetAmount × taxRate ÷ 100
+lineNetAmount = roundHalfUp(rawNetAmount, 2)
+lineTaxAmount = roundHalfUp(rawTaxAmount, 2)
 ```
 
 For every invoice:
@@ -107,17 +113,21 @@ payableAmount = taxExclusiveAmount + taxAmount
 Rounding rules:
 
 - Round each line net and line tax amount to scale 2.
+- Calculate line tax from the unrounded net amount, then round net and tax independently.
 - Use `RoundingMode.HALF_UP`.
 - Sum rounded line values.
 - Store and output monetary values with two decimal places.
 
 XML contains calculated values. On XML import, the application recalculates them and rejects mismatches.
 
+Decimal-scale validation ignores trailing zeros: for example, `1.23000` has an effective scale of 2. Money calculations are implemented in [MoneyCalculationService.java](../../src/main/java/com/berk/dataintegration/calculation/MoneyCalculationService.java).
+
 ## 8. Cross-record rules
 
 - IDs are compared after trimming.
 - IDs are case-sensitive.
 - Duplicate IDs are errors.
+- Invoice numbers are unique across the batch; line numbers are positive and unique within each invoice.
 - Missing references are errors.
 - Supplier and customer cannot reference the same party ID in one invoice.
 - A referenced supplier must have role `SUPPLIER`.
@@ -125,8 +135,12 @@ XML contains calculated values. On XML import, the application recalculates them
 - Every invoice must have at least one line.
 - Every invoice-line `invoiceNumber` in Excel must reference an existing invoice.
 - Orphan parties and payment accounts are allowed; they may exist without being referenced.
+- The due date cannot precede the issue date.
+- Invoice and payment-account currencies must match.
 
 ## 9. Excel-to-XML mapping
+
+All 32 sheet/column positions are listed below. Abbreviated XML paths in the payment-account, invoice, and line rows continue within the respective `PaymentAccount`, `Invoice`, and `Invoice/Lines/Line` elements.
 
 | Excel sheet.column | Domain field | XML path |
 |---|---|---|
@@ -154,6 +168,7 @@ XML contains calculated values. On XML import, the application recalculates them
 | Invoices.customer_id | Invoice.customerId | .../CustomerPartyId |
 | Invoices.payment_account_id | Invoice.paymentAccountId | .../PaymentAccountId |
 | Invoices.note | Invoice.note | .../Note |
+| InvoiceLines.invoice_number | Associates InvoiceLine with its parent Invoice by Invoice.invoiceNumber | Selects InvoiceBatch/Invoices/Invoice by InvoiceNumber; not repeated inside Line |
 | InvoiceLines.line_number | InvoiceLine.lineNumber | .../Lines/Line/LineNumber |
 | InvoiceLines.item_code | InvoiceLine.itemCode | .../Lines/Line/ItemCode |
 | InvoiceLines.description | InvoiceLine.description | .../Lines/Line/Description |
@@ -161,6 +176,10 @@ XML contains calculated values. On XML import, the application recalculates them
 | InvoiceLines.unit_code | InvoiceLine.unitCode | .../Lines/Line/UnitCode |
 | InvoiceLines.unit_price | InvoiceLine.unitPrice | .../Lines/Line/UnitPrice |
 | InvoiceLines.tax_rate | InvoiceLine.taxRate | .../Lines/Line/TaxRate |
+
+XML also contains `LineNetAmount`, `LineTaxAmount`, `TaxExclusiveAmount`, `TaxAmount`, and `PayableAmount`. These are calculated values, not additional Excel input columns.
+
+XML requires at least one `Party`, `PaymentAccount`, and `Invoice`, with at least one `Line` per invoice. The blank Excel template supplies headers only and must be populated before it can produce a schema-valid XML document.
 
 ## 10. Not supported in v1
 

@@ -1,19 +1,24 @@
 # Excel Format — invoice-data-v1
 
+The current sheet and column definitions are implemented in [ExcelSheetDefinition.java](../../src/main/java/com/berk/dataintegration/excel/ExcelSheetDefinition.java). This document was checked against the reader and writer on 2026-10-14.
+
 ## General workbook rules
 
 - File extension: `.xlsx`
 - Required sheets: `Parties`, `PaymentAccounts`, `Invoices`, `InvoiceLines`
 - Optional informational sheets: `README`, `ReferenceLists`
 - Required sheet names are case-sensitive.
+- Sheet tab order does not matter; column order within each required sheet must match the tables below.
 - Header names are exact, lowercase `snake_case`, and case-sensitive after trimming surrounding whitespace.
 - Header row is row 1.
 - Data starts at row 2.
-- Unknown extra sheets may be ignored.
-- Unknown extra columns in a required sheet are contract errors.
+- Extra sheets are ignored by the reader.
+- Nonblank header cells beyond the defined columns are contract errors. Blank trailing headers are ignored; data in columns outside the contract is not imported.
 - A fully empty row is ignored.
 - A partially populated row is validated and may fail; it is never silently skipped.
-- Formula cells are not required in input. The application should reject unsupported formula values when a reliable cached value is unavailable.
+- Formula cells in contract data columns are always rejected with `UNSUPPORTED_FORMULA`, regardless of whether a cached result is available. The application does not evaluate formulas.
+
+Across the required sheets there are 32 column positions: `Parties` 10, `PaymentAccounts` 6, `Invoices` 8, and `InvoiceLines` 8. Headers are required even for optional data fields. Text fields, including IDs, tax numbers, phone numbers, and postal codes, must use text cells; numeric cells are not automatically converted into those fields.
 
 ## Date input
 
@@ -27,9 +32,11 @@ The writer produces real Excel date cells formatted as `yyyy-mm-dd`.
 ## Decimal input
 
 - Numeric Excel cells are preferred.
-- ISO-style decimal text using `.` may also be accepted.
-- Locale-specific values such as `1.234,56` should be rejected in v1 to avoid ambiguity.
+- Decimal text using `.` is accepted, with optional leading `+` or `-`; for example `1250.00` or `-1.5`. Grouping separators and exponent notation are rejected in text cells.
+- Locale-specific text such as `1.234,56` is rejected with `INVALID_DECIMAL_FORMAT`.
 - The writer produces numeric cells.
+
+Numeric `line_number` cells must contain a whole number within Java's `int` range. Integer text is also accepted. Domain validation additionally requires a positive line number and enforces the quantity, price, and tax-rate limits in the [shared contract](data-contract.md).
 
 ## Sheet: Parties
 
@@ -50,6 +57,8 @@ Exact headers:
 
 `party_role` values: `SUPPLIER`, `CUSTOMER`.
 
+Role, country, currency, and unit codes are case-sensitive and are not automatically uppercased.
+
 ## Sheet: PaymentAccounts
 
 Exact headers:
@@ -62,6 +71,8 @@ Exact headers:
 | iban | Yes | `TR00TEST000000000000000000` |
 | swift_code | No | `TESTTRIS` |
 | currency_code | Yes | `TRY` |
+
+Enter IBANs without spaces for XML interchange; see the [IBAN validation behavior](data-contract.md#4-payment-account).
 
 ## Sheet: Invoices
 
@@ -105,7 +116,7 @@ InvoiceLines.invoice_number   → Invoices.invoice_number
 ## Invalid workbook examples
 
 - Required sheet missing
-- Header misspelled, reordered with an unknown name, or wrong case
+- Header misspelled, reordered, or in the wrong case
 - Duplicate `party_id`
 - Invoice references a missing customer
 - Customer reference points to a supplier-role party
@@ -114,4 +125,12 @@ InvoiceLines.invoice_number   → Invoices.invoice_number
 - Line quantity is zero or negative
 - Tax rate is above 100
 - Numeric value is entered as `1.234,56`
+- A contract data cell contains a formula, including a formula with a cached result
+- A text identifier is stored as a numeric cell
 - A row contains only an invoice number and no other required values
+
+## Output and templates
+
+The writer creates the four contract sheets with header styling, frozen header rows, filters, date/number formats, and input-validation helpers. It writes the supported domain fields; arbitrary extra sheets, workbook formatting, and formulas from an input file are not preserved by a conversion.
+
+[templates/invoice-data-template.xlsx](../../templates/invoice-data-template.xlsx) is a blank starting workbook. The CLI `template --output <path>` command and the Swing template action generate a new blank workbook using the same writer. Populate the required data before converting a template to XML; the XML schema requires nonempty collections.

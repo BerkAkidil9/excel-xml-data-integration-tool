@@ -1,5 +1,7 @@
 # CV için doğrulanabilir proje metrikleri
 
+Bu rapor **30 Eylül 2026 tarihli kaynak ve veri snapshot'ını** belgeler. Aşağıdaki CI yapısı, kaynak satırları, coverage ve benchmark sayıları o incelemeye aittir. 14 Ekim 2026'da CI iki yerel macOS ARM64 runner üzerinde üç job kullanacak şekilde değişti; README, test stratejisi ve veri formatı belgeleri de mevcut kodla uzlaştırıldı. Güncel akış için [CI belgesine](../../development/ci.md), mevcut test kapsamı için [test stratejisine](../../development/testing-strategy.md) bakın. Bu belge güncellemesi yeni bir coverage veya benchmark ölçümü değildir; `evidence.zip` değişmedi.
+
 Ham kanıtlar ve script'ler [evidence.zip](evidence.zip) arşivindedir. Kanıt bağlantılarının yanındaki yollar arşiv içindeki konumu gösterir; açma ve doğrulama adımları [REPRODUCE.md](REPRODUCE.md) içindedir.
 
 Bu inceleme Java/Backend ve genel Software Engineer başvuruları için kaynak koddan doğrulanabilen kapsamı, mevcut testlerin sonuçlarını ve yerel dönüşüm sürelerini belgeler. En güçlü adaylar **103 geçen test**, **4 ilişkili Excel sayfası** ve **10.000 fatura / 50.000 satır üzerinde doğrulanmış yerel dönüşüm ölçümü**. Tüm uygulamanın satır coverage'ı **%78,07377049**; UI dahil edilmiştir. Üretim kullanımı veya önce/sonra iyileşme ölçülmedi.
@@ -18,7 +20,7 @@ Bu inceleme Java/Backend ve genel Software Engineer başvuruları için kaynak k
 | 44 ValidationCode enum sabiti | Sayıyı kullanmadan “structured validation errors” | [Adları, declaration satırları ve kullanım yerleri](evidence.zip) (`validation-codes.json`); enum sabitleri sayıldı | Scope | Düşük sayısal değer, yüksek teknik değer. İş kuralı/kontrol sayısı değildir; I/O ve parse kodları da içerir |
 | 1 XSD; 13 named simpleType, 3 key, 3 keyref | “XSD and cross-record validation” | [XSD envanteri](evidence.zip) (`xsd-inventory.json`), [adlar ve örtüşmeler](validation-inventory.md); şema bildirimleri sayıldı | Scope | Teknik kapsam değerli; sayılar CV'yi güçlendirmez. Java kurallarıyla tekrar eden kısıtlar toplanmadı |
 | 10 Java package, 78 main Java dosyası (1 package-info dahil); 1 Maven projesi, 0 child module | “separated domain, conversion, validation, and presentation concerns” | [Package içindeki tüm dosyalar](evidence.zip) (`package-inventory.json`), [type/import envanteri](evidence.zip) (`source-inventory.json`), pom.xml | Scope | Package/dosya sayısını çıkart. Domain'deki 8 record + 1 enum + 1 helper mimari başarı metriği değildir; domain import'ları yalnız JDK |
-| 1 CI workflow, 1 job, 3 step; 2 event türü | “Maven and GitHub Actions CI verification” | [.github/workflows/verify.yml](../../../.github/workflows/verify.yml), pom.xml; tetikleyici, job ve komut ayrı okundu | Scope | Orta/yüksek teknik değer. Push yalnız main, pull_request filtresiz. Çalıştırılan komut `./mvnw verify`; deployment/coverage gate yok. Uzak Actions koşusu bu incelemede çalıştırılmadı |
+| İnceleme anında 1 CI workflow, 1 job, 3 step; 2 event türü | “Maven and GitHub Actions CI verification” | [İncelenen commit'teki workflow](https://github.com/BerkAkidil9/excel-xml-data-integration-tool/blob/334f89ca0553962a7ecd5c144be5508faa581f84/.github/workflows/verify.yml), pom.xml; tetikleyici, job ve komut ayrı okundu | Scope | Orta/yüksek teknik değer. Push yalnız main, pull_request filtresiz. Çalıştırılan komut `./mvnw verify`; deployment/coverage gate yok. Uzak Actions koşusu bu tarihsel incelemede çalıştırılmadı; güncel workflow farklıdır |
 | Normal JAR 176.476 byte; bağımlılıkları içeren app JAR 21.297.575 byte | Gerekirse “runnable application JAR”; boyutu kullanma | [Exact boyut, MiB ve SHA-256](evidence.zip) (`artifact-sizes.json`); temiz verify sonrasında filesystem ölçümü | Measured Result | Düşük. Sırasıyla 0,16830063 ve 20,31095028 MiB; küçülme/bellek kullanımını göstermez |
 
 Validation katmanları, tüm alan koşulları, dört referans ilişkisi, XML tutarları, güvenlik kontrolleri, domain/servis/UI isimleri ve “10 documented business-rule checks” denetimi [validation-inventory.md](validation-inventory.md) içindedir. Dokümandaki on madde normalizasyon, izin politikası ve birbiriyle örtüşen referans maddeleri içerir. **On bağımsız validation kontrolü iddiası çıkarılmalıdır.**
@@ -153,12 +155,12 @@ Beş bullet birlikte kullanılabilir; daha kısa CV için dördüncü, benchmark
 | Peak RSS/heap, eşzamanlı yük, soğuk başlangıç | Ölçülmedi | Sabit heap limiti bellek kullanımı değildir; JVM startup süre dışında |
 | Statement coverage | Araç çıktısı yok | JaCoCo instruction counter'ı yerine kullanılamaz |
 | UI görünümü ve erişilebilirlik | Ölçülmedi | Headless testler görünür pencere veya assistive technology test etmez |
-| Windows/Linux çalışma zamanı uyumu | Ölçülmedi | Workflow ubuntu-latest tanımlar; yerel audit yalnız macOS'ta çalıştı |
+| Windows/Linux çalışma zamanı uyumu | Ölçülmedi | İnceleme anındaki workflow ubuntu-latest tanımlıyordu; yerel audit yalnız macOS'ta çalıştı |
 | Güvenlik açığı / dependency vulnerability sayısı | Ölçülmedi | SAST/SCA veya penetration testi yapılmadı |
 | Build hızı iyileşmesi, JAR küçülmesi | Kanıt yok | Tek temiz build ve anlık boyut; karşılaştırmalı ölçüm yok |
 | CSV import | Mevcut değil | CSV fixture'lar var; uygulama CSV hata raporu export eder, CSV dönüşüm yönü sağlamaz |
 
-Bu eksikler sıfır değer olarak raporlanmaz. Kaynakta görülen belge/uygulama farkları (formül reddi, Failsafe hedefi, eksik join mapping satırı) inceleme kapsamında düzeltilmedi; [validation envanterinde](validation-inventory.md) kaydedildi.
+Bu eksikler sıfır değer olarak raporlanmaz. Kaynakta görülen belge/uygulama farkları (formül reddi, Failsafe hedefi, eksik join mapping satırı) 30 Eylül incelemesi kapsamında düzeltilmedi; [validation envanterinde](validation-inventory.md) kaydedildi. Bu üç belge farkı 14 Ekim 2026 dokümantasyon güncellemesinde giderildi; tarihsel kanıtlar korunmuştur.
 
 ## H CV için seçilen metrikler
 

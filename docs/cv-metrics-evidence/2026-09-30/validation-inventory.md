@@ -1,5 +1,7 @@
 # Validation ve veri sözleşmesi envanteri
 
+Bu envanter **30 Eylül 2026'da incelenen `334f89ca0553962a7ecd5c144be5508faa581f84` commit'ine ve o günkü çalışma kopyasına** aittir. Kaynak satırları ve aşağıdaki eski doküman/CI açıklamaları tarihsel bağlamda okunmalıdır. 14 Ekim 2026'da aktif belgelerdeki formül, Failsafe ve eksik join mapping açıklamaları düzeltildi; CI da iki yerel runner'a taşındı. Güncel kaynaklar: [veri sözleşmesi](../../data-format/data-contract.md), [Excel formatı](../../data-format/excel-format.md), [test stratejisi](../../development/testing-strategy.md) ve [CI belgesi](../../development/ci.md). Ölçüm arşivi değişmedi.
+
 Ham kanıtlar ve script'ler [evidence.zip](evidence.zip) arşivindedir. Kanıt bağlantılarının yanındaki yollar arşiv içindeki konumu gösterir; açma ve doğrulama adımları [REPRODUCE.md](REPRODUCE.md) içindedir.
 
 Bu envanter kontrol katmanlarını ayırır. Aynı alanın Java ve XSD kısıtları bağımsız iş kuralı olarak toplanmaz. Kaynak yolları depo köküne göredir; hata kodlarının bütün kullanım yerleri [validation-codes.json](evidence.zip) (`validation-codes.json`), XSD bildirimlerinin satırları [xsd-inventory.json](evidence.zip) (`xsd-inventory.json`) içindedir.
@@ -53,7 +55,7 @@ Kod adedi ile koşul adedi eşit değildir. Bu nedenle CV'de toplam validation s
 
 ## On dokümante madde denetimi
 
-`docs/data-format/data-contract.md` bölüm 8'deki on madde:
+İnceleme anındaki `docs/data-format/data-contract.md` bölüm 8'deki on madde (güncel liste ek açıklamalar içerir):
 
 | Madde | Değerlendirme |
 |---|---|
@@ -74,9 +76,9 @@ Kod adedi ile koşul adedi eşit değildir. Bu nedenle CV'de toplam validation s
 
 Zorunlu sayfalar ve tam header listesi [excel-columns.csv](evidence.zip) (`excel-columns.csv`) içinde: Parties 10, PaymentAccounts 6, Invoices 8, InvoiceLines 8; toplam **32 sütun konumu**. Bunlar 32 benzersiz alan adı değildir. Tüm domain ve XML yolları [contract-mapping.csv](evidence.zip) (`contract-mapping.csv`) içinde gösterilir.
 
-Referanslar: `Invoices.supplier_id → Parties.party_id`, `Invoices.customer_id → Parties.party_id`, `Invoices.payment_account_id → PaymentAccounts.payment_account_id`, `InvoiceLines.invoice_number → Invoices.invoice_number`. Sonuncusu XML'de Line'ın üst Invoice öğesine yerleştirilmesini sağlar; Line içinde tekrarlanan InvoiceNumber alanı yoktur. Orijinal dokümandaki eşleme tablosu bu join sütununu atladığı için 31 satırdır. XML ayrıca iki satır tutarı ve üç fatura toplamı taşır; Excel bunları sütun olarak taşımaz.
+Referanslar: `Invoices.supplier_id → Parties.party_id`, `Invoices.customer_id → Parties.party_id`, `Invoices.payment_account_id → PaymentAccounts.payment_account_id`, `InvoiceLines.invoice_number → Invoices.invoice_number`. Sonuncusu XML'de Line'ın üst Invoice öğesine yerleştirilmesini sağlar; Line içinde tekrarlanan InvoiceNumber alanı yoktur. Orijinal dokümandaki eşleme tablosu bu join sütununu atladığı için 31 satırdı; güncel veri sözleşmesi 32 sütun konumunun tamamını içerir. XML ayrıca iki satır tutarı ve üç fatura toplamı taşır; Excel bunları sütun olarak taşımaz.
 
-`ExcelWorkbookContractValidator.java` 21–90: sayfa varlığı, sıralı/exact header eşleşmesi, fazladan dolu header reddi. `ExcelCellParser.java`: boş satır atlama, kısmi satırın korunması, metin/enum/tarih/decimal/integer türleri. Kaynak formül hücrelerini cached değerinden bağımsız reddeder; Excel format dokümanındaki daha yumuşak ifade uygulamanın davranışı değildir.
+`ExcelWorkbookContractValidator.java` 21–90: sayfa varlığı, sıralı/exact header eşleşmesi, fazladan dolu header reddi. `ExcelCellParser.java`: boş satır atlama, kısmi satırın korunması, metin/enum/tarih/decimal/integer türleri. Kaynak formül hücrelerini cached değerinden bağımsız reddeder; inceleme anındaki Excel format dokümanının daha yumuşak ifadesi uygulamanın davranışını yansıtmıyordu. Güncel Excel belgesi koşulsuz formül reddini açıklar.
 
 XSD'nin **13 isimli simpleType** tanımı: NonBlankText, Id40, InvoiceNumberType, CurrencyCodeType, CountryCodeType, RoleType, IbanType, SwiftCodeType, UnitCodeType, NonNegativeMoneyType, PositiveQuantityType, NonNegativeUnitPriceType, TaxRateType. Ayrıca element sırası, zorunluluk/çokluk, tarih/pozitif tamsayı türleri, sabit version=1.0, **3 key** (PartyIdKey, PaymentAccountIdKey, InvoiceNumberKey) ve **3 keyref** (SupplierPartyRef, CustomerPartyRef, PaymentAccountRef) vardır. XSD kısıtları Java alan/ilişki kurallarıyla örtüşür; toplama eklenmez. NonBlankText minLength=1 kullanır; whitespace-only metnin reddini ayrıca domain validator sağlar.
 
@@ -103,4 +105,4 @@ Service paketindeki **2 davranış sınıfı**: InvoiceConversionService ve Conv
 
 UI paketindeki 17 dosyanın tamamı görsel bileşen değildir. SwingConversionFrame ana pencere, NavigationFileChooser dosya seçici; ConversionController ve ConversionViewModel durum/akış yönetir; SwingWorkerConversionExecutor background iş yürütür. ErrorTableModel, filtre, formatter, direction/request/severity ve interface tipleri destek kodudur. Supplier/customer ticari veri rolleridir; kullanıcı yetkilendirmesi değildir.
 
-Tek Maven projesi, sıfır child module. CI: `push` yalnız `main`; `pull_request` için branch filtresi yok; bir `verify` job, üç step (checkout, Java kurulumu, `./mvnw verify`). Surefire testleri ve Shade paketleme çalışır; coverage gate, deployment, Failsafe veya ayrı integration-test job yoktur. Testing Strategy belgesindeki `*IT`/Failsafe açıklaması uygulanmış yapılandırma sayılmaz.
+Tek Maven projesi, sıfır child module. İnceleme anındaki CI: `push` yalnız `main`; `pull_request` için branch filtresi yok; bir `verify` job, üç step (checkout, Java kurulumu, `./mvnw verify`). Surefire testleri ve Shade paketleme çalışıyordu; coverage gate, deployment, Failsafe veya ayrı integration-test job yoktu. O günkü Testing Strategy belgesinin `*IT`/Failsafe hedefi uygulanmış yapılandırma değildi. Güncel CI üç job (`tests`, `package`, `verify`) ve iki macOS ARM64 runner kullanır; manuel tetikleyici ve paketlenmiş CLI kontrolleri de vardır. Failsafe hâlâ yapılandırılmamıştır.

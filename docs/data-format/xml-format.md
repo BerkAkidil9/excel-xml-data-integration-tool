@@ -6,9 +6,11 @@
 - Namespace: `urn:berk:excel-xml-integration:invoice:v1`
 - Root element: `InvoiceBatch`
 - Required version attribute: `1.0`
-- XSD: `src/main/resources/schema/invoice-data-v1.xsd`
+- XSD: [invoice-data-v1.xsd](../../src/main/resources/schema/invoice-data-v1.xsd)
 
 This is a project-specific internal exchange format. It is not UBL, UBL-TR, Peppol, or GİB e-Fatura.
+
+The reader, writer, and schema were reviewed on 2026-10-14. The schema is bundled in the application jar; validation does not download an external schema.
 
 ## Document order
 
@@ -31,11 +33,13 @@ Each invoice has this order:
 9. `Lines`
 10. `Totals`
 
-Optional empty values are omitted; empty tags such as `<Note/>` should not be written.
+The writer omits blank optional text and absent dates instead of writing empty tags such as `<Note/>`. Each root collection must contain at least one record; each invoice must contain at least one line.
+
+`InvoiceLines.invoice_number` is an Excel join column. XML expresses that relationship by nesting each `Line` under its parent `Invoice/Lines`, so the invoice number is not repeated inside a line.
 
 ## Complete example
 
-See `examples/valid-invoice-data.xml`.
+See [examples/valid-invoice-data.xml](../../examples/valid-invoice-data.xml).
 
 A shortened example:
 
@@ -109,7 +113,10 @@ A shortened example:
 - external general entities disabled
 - external parameter entities disabled
 - external DTD and schema access disabled
-- no network access
+- XInclude disabled and secure processing enabled
+- no external entity or schema fetching
+
+XSD validation and subsequent JAXB unmarshalling both use the secure SAX reader. Malformed/forbidden XML and schema violations produce structured validation errors; an invalid schema result stops processing before domain conversion.
 
 ### Stage 2 — XSD validation
 
@@ -132,8 +139,16 @@ Checks not fully expressible in XSD:
 - line numbers are unique within an invoice
 - monetary totals match recalculation
 
+Line net and tax amounts are rounded independently to two decimal places with `HALF_UP`; tax is calculated from the unrounded `quantity × unitPrice` value. Invoice totals sum the rounded line amounts. See the [shared calculation rules](data-contract.md#7-calculated-values).
+
+The writer also validates generated XML against the bundled XSD during JAXB marshalling. Conversion through `InvoiceConversionService` writes the result to a temporary file before replacing the destination.
+
 ## Invalid XML fixtures
 
-- `invalid-schema-missing-invoice-number.xml`: structurally invalid
-- `invalid-business-wrong-total.xml`: XSD-valid shape but incorrect calculated total
-- `invalid-reference.xml`: references a missing party ID
+Fixtures are under [src/test/resources/fixtures/xml](../../src/test/resources/fixtures/xml/):
+
+- [invalid-schema-missing-invoice-number.xml](../../src/test/resources/fixtures/xml/invalid-schema-missing-invoice-number.xml): structurally invalid
+- [invalid-business-wrong-total.xml](../../src/test/resources/fixtures/xml/invalid-business-wrong-total.xml): XSD-valid shape but incorrect calculated total
+- [invalid-reference.xml](../../src/test/resources/fixtures/xml/invalid-reference.xml): references a missing party ID
+
+Malformed XML, altered line totals, and a DOCTYPE/XXE payload are also generated inside `XmlInvoiceReaderTest`; they are not separate fixture files. These regression checks do not replace a dependency vulnerability scan.

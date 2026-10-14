@@ -1,5 +1,7 @@
 # CV metriklerini yeniden ölçme
 
+Bu kılavuz **30 Eylül 2026 ölçümünü** yeniden üretir. Güncel `main`, 14 Ekim 2026'da eklenen yerel runner CI'ını ve güncellenmiş belgeleri içerir; ölçümdeki iki örnek dosyasının değiştirilmiş içerikleri güncel `main`in parçası değildir. Aşağıdaki izole clone ve arşivden örnek kopyalama adımları bu nedenle gereklidir. Güncel geliştirme/CI komutları [test stratejisinde](../../development/testing-strategy.md) ve [CI belgesinde](../../development/ci.md) yer alır.
+
 GitHub'da bu inceleme dört dosya olarak tutulur: [sonuç raporu](REPORT.md), [validation envanteri](validation-inventory.md), bu kılavuz ve [kanıt arşivi](evidence.zip). Arşiv, orijinal incelemenin 160 dosyasını eksiksiz içerir: ham test/coverage raporları, benchmark tekrarları, ortam ve kaynak manifest'leri, envanterler, script'ler, ilk raporların kopyaları ve SHA-256 listesi. Ölçüm değerleri paketleme sırasında değiştirilmedi.
 
 Arşiv boyutu **288.497 byte**. SHA-256:
@@ -19,7 +21,7 @@ unzip -q "$audit_bundle" -d "$audit_root/evidence"
 (cd "$audit_root/evidence" && shasum -a 256 -c checksums.sha256)
 ```
 
-`checksums.sha256`, kendisi dışındaki 159 dosyayı doğrular. Arşivdeki Markdown belgeleri ölçüm anındaki sürümlerdir; GitHub'daki belgeler arşiv bağlantılarını ve bu paketleme kılavuzunu içerir.
+`checksums.sha256`, kendisi dışındaki 159 dosyayı doğrular. Arşivdeki Markdown belgeleri ölçüm anındaki sürümlerdir; GitHub'daki belgeler arşiv bağlantılarını, bu paketleme kılavuzunu ve tarihsel/güncel kapsam ayrımını içerir. Belge güncellemeleri arşivin içeriğini veya aşağıda açıklanan ölçüm yöntemini değiştirmez.
 
 | Arşiv içindeki dosya veya klasör | İçerik |
 |---|---|

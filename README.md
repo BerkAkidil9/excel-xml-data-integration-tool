@@ -6,7 +6,7 @@ The XML format is versioned as `invoice-data-v1` and defined by the repository s
 
 ## Status
 
-The first supported version is implemented:
+The current project version is `0.1.0-SNAPSHOT`. The implementation includes:
 
 - Excel `.xlsx` format validation, reading, and writing with Apache POI.
 - XML reading and writing with Jakarta XML Binding.
@@ -19,7 +19,7 @@ The first supported version is implemented:
 - Swing UI for local desktop use.
 - Swing file chooser navigation, reset behavior, automatic output suggestions, and structured error review helpers.
 - Maven packaging for a runnable application jar.
-- GitHub Actions verification with the Maven Wrapper.
+- GitHub Actions verification on two local macOS ARM64 runners, with parallel test and packaged CLI checks.
 
 The application is packaged as a runnable local desktop application. It is not distributed as a signed installer and does not include auto-update support.
 
@@ -33,6 +33,8 @@ The application is packaged as a runnable local desktop application. It is not d
   - `PaymentAccounts`
   - `Invoices`
   - `InvoiceLines`
+- Exact ordered headers across the four sheets: 10 + 6 + 8 + 8 columns.
+- Excel input accepts real date cells and ISO date/decimal text; formula cells are rejected even when they contain a cached result.
 - XML namespace used by this project:
   - `urn:berk:excel-xml-integration:invoice:v1`
 - Secure XML parsing:
@@ -65,7 +67,7 @@ The application is packaged as a runnable local desktop application. It is not d
 ## Technology Stack
 
 - Java 21
-- Apache Maven
+- Apache Maven `3.9.11` through the bundled Maven Wrapper; Maven `3.9.0+` is required by the build
 - Java Swing
 - Apache POI `5.5.1`
 - Jakarta XML Binding API `4.0.5`
@@ -75,6 +77,9 @@ The application is packaged as a runnable local desktop application. It is not d
 - Maven Surefire Plugin `3.5.5`
 - Maven Shade Plugin `3.6.1`
 - Maven Enforcer Plugin `3.6.3`
+- Exec Maven Plugin `3.5.0`
+
+Dependency and plugin versions are defined in [pom.xml](pom.xml); the Maven distribution is pinned in [maven-wrapper.properties](.mvn/wrapper/maven-wrapper.properties).
 
 ## Architecture
 
@@ -109,28 +114,29 @@ The domain layer does not depend on Apache POI, JAXB, Swing, or service orchestr
 
 More detail:
 
-- Architecture decisions: `docs/architecture/decisions.md`
-- Testing strategy: `docs/development/testing-strategy.md`
+- [Architecture decisions](docs/architecture/decisions.md)
+- [Testing strategy](docs/development/testing-strategy.md)
+- [CI and local runner operations](docs/development/ci.md)
 
 ## Data Formats
 
 The repository defines one invoice data format with matching Excel and XML representations:
 
-- Shared domain and validation rules: `docs/data-format/data-contract.md`
-- Excel workbook format: `docs/data-format/excel-format.md`
-- XML format: `docs/data-format/xml-format.md`
-- XML Schema: `src/main/resources/schema/invoice-data-v1.xsd`
+- [Shared domain and validation rules](docs/data-format/data-contract.md)
+- [Excel workbook format](docs/data-format/excel-format.md)
+- [XML format](docs/data-format/xml-format.md)
+- [XML Schema](src/main/resources/schema/invoice-data-v1.xsd)
 
 Useful files:
 
-- Blank Excel template: `templates/invoice-data-template.xlsx`
-- Valid Excel example: `examples/valid-invoice-data.xlsx`
-- Valid XML example: `examples/valid-invoice-data.xml`
-- Test fixtures: `src/test/resources/fixtures/`
+- [Blank Excel template](templates/invoice-data-template.xlsx)
+- [Valid Excel example](examples/valid-invoice-data.xlsx)
+- [Valid XML example](examples/valid-invoice-data.xml)
+- [Test fixtures](src/test/resources/fixtures/)
 
 ## Build
 
-Java 21 is required.
+JDK 21 is required. The Maven Enforcer configuration rejects other Java major versions. Set `JAVA_HOME` to a JDK 21 installation when multiple JDKs are installed.
 
 ```bash
 git clone https://github.com/BerkAkidil9/excel-xml-data-integration-tool.git
@@ -139,6 +145,8 @@ cd excel-xml-data-integration-tool
 ```
 
 On a fresh machine, the Maven Wrapper downloads Maven when needed, and Maven downloads project dependencies.
+
+On Windows, use `.\mvnw.cmd verify` and `.\mvnw.cmd package` in place of the corresponding `./mvnw` commands. The CLI and jar commands below are run from the repository root.
 
 Create the regular jar and runnable application jar:
 
@@ -166,6 +174,12 @@ Run the packaged Swing application after `./mvnw package`:
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
 ```
 
+Launching without arguments opens Swing and requires a graphical desktop. Supplying CLI arguments selects the command-line path, which defaults to headless mode. Show CLI usage with:
+
+```bash
+java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar --help
+```
+
 Convert Excel to XML:
 
 ```bash
@@ -173,7 +187,7 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   convert \
   --direction excel-to-xml \
   --input examples/valid-invoice-data.xlsx \
-  --output /tmp/valid-invoice-data.xml
+  --output target/manual-check/from-excel.xml
 ```
 
 Convert XML to Excel:
@@ -183,36 +197,39 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   convert \
   --direction xml-to-excel \
   --input examples/valid-invoice-data.xml \
-  --output /tmp/valid-invoice-data.xlsx
+  --output target/manual-check/from-xml.xlsx
 ```
 
-Write a CSV error report:
+Write a CSV error report for a supplied invalid XML fixture; this example intentionally exits with code `1`:
 
 ```bash
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   convert \
   --direction xml-to-excel \
-  --input broken.xml \
-  --output fixed.xlsx \
-  --error-report errors.csv
+  --input src/test/resources/fixtures/xml/invalid-business-wrong-total.xml \
+  --output target/manual-check/invalid.xlsx \
+  --error-report target/manual-check/errors.csv
 ```
 
 The generated CSV starts with a total error count and grouped error summary, then includes the detailed structured error rows.
 One `--error-report` path writes all errors from that conversion into the same CSV file; it does not create one report per error.
+The report is UTF-8 CSV with `summary`, `summary_by_error`, and `details` sections. If requested for a successful conversion, it records zero errors. The application exports error reports; it does not import invoice data from CSV.
 
 Create a blank Excel workbook template:
 
 ```bash
 java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar \
   template \
-  --output invoice-data-template.xlsx
+  --output target/manual-check/invoice-data-template.xlsx
 ```
 
 CLI exit codes:
 
-- `0`: conversion completed
-- `1`: conversion failed because of input validation or conversion errors
+- `0`: conversion/template generation completed, or help displayed
+- `1`: conversion, template generation, or requested error-report writing failed
 - `2`: command-line usage error
+
+CLI output paths are replaced without an interactive prompt. Swing asks for confirmation before overwriting a conversion output. The conversion service validates input before replacing the destination, writes to a temporary file in the destination directory, and then moves it into place. It uses an atomic move where supported and falls back to a regular replacement move.
 
 ## Desktop Usage
 
@@ -251,7 +268,9 @@ Run the full verification build:
 ./mvnw verify
 ```
 
-The automated tests cover calculation, validation, Excel reader/writer behavior, XML reader/writer behavior, conversion services, CLI behavior, error reports, and stable Swing controller/view-model/UI helper behavior.
+As reviewed on 2026-10-14, the suite contains **103 JUnit tests across 21 test classes**. These cover calculation, validation, Excel/XML reader and writer behavior, conversion services, CLI behavior, error reports, and Swing controller/view-model/UI helpers. Surefire runs all of them as `*Test`; Failsafe is not configured.
+
+See the [testing strategy](docs/development/testing-strategy.md) for execution details and coverage limits. The [2026-09-30 metrics report](docs/cv-metrics-evidence/2026-09-30/REPORT.md) preserves dated coverage and benchmark evidence; these measurements are not automatically regenerated by CI.
 
 ### Continuous Integration
 
@@ -264,19 +283,23 @@ Pushes to `main`, pull requests from branches in this repository, and manual wor
 
 The final `verify` check succeeds only when both jobs succeed. Jobs use Java 21 and a Maven dependency cache inside each runner's workspace; Docker and GitHub-hosted build machines are not used. Pull requests from forks are skipped on these runners.
 
-Runner installations live under `~/.github-runners/excel-xml-ci-1` and `~/.github-runners/excel-xml-ci-2`. Each is installed as a macOS user service. From a runner directory, `./svc.sh status`, `./svc.sh stop`, and `./svc.sh start` manage the service. The Mac must be awake and connected to the internet to accept jobs; pending jobs wait while the runners are offline.
+The Mac must be awake and connected to the internet to accept jobs. Runner service commands, cache/report locations, and manual execution are documented in [CI and local runner operations](docs/development/ci.md). The workflow performs verification; deployment, coverage gates, and dependency vulnerability scanning are not configured.
 
 ## Project Structure
 
 ```text
 .
+├── .github/workflows/verify.yml
 ├── LICENSE
 ├── README.md
 ├── docs/
 │   ├── architecture/
+│   ├── cv-metrics-evidence/
 │   ├── data-format/
 │   └── development/
 ├── examples/
+├── mvnw / mvnw.cmd
+├── pom.xml
 ├── src/
 │   ├── main/
 │   └── test/
@@ -296,4 +319,4 @@ Runner installations live under `~/.github-runners/excel-xml-ci-1` and `~/.githu
 
 ## License
 
-This project is licensed under the MIT License. See `LICENSE`.
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
