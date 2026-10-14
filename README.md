@@ -253,6 +253,19 @@ Run the full verification build:
 
 The automated tests cover calculation, validation, Excel reader/writer behavior, XML reader/writer behavior, conversion services, CLI behavior, error reports, and stable Swing controller/view-model/UI helper behavior.
 
+### Continuous Integration
+
+The `Verify` GitHub Actions workflow runs directly on the owner's Mac using two repository-specific macOS ARM64 self-hosted runners, `excel-xml-ci-1` and `excel-xml-ci-2`, with the `excel-xml-ci` label.
+
+Pushes to `main`, pull requests from branches in this repository, and manual workflow runs trigger two parallel jobs:
+
+- `Tests` runs the full Maven test suite.
+- `Package and CLI` verifies packaging and exercises the runnable jar with template generation, both conversion directions, and an XML-to-Excel-to-XML round trip.
+
+The final `verify` check succeeds only when both jobs succeed. Jobs use Java 21 and a Maven dependency cache inside each runner's workspace; Docker and GitHub-hosted build machines are not used. Pull requests from forks are skipped on these runners.
+
+Runner installations live under `~/.github-runners/excel-xml-ci-1` and `~/.github-runners/excel-xml-ci-2`. Each is installed as a macOS user service. From a runner directory, `./svc.sh status`, `./svc.sh stop`, and `./svc.sh start` manage the service. The Mac must be awake and connected to the internet to accept jobs; pending jobs wait while the runners are offline.
+
 ## Project Structure
 
 ```text

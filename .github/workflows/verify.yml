@@ -5,21 +5,98 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
-
+  tests:
+    name: Tests
+    # Fork pull requests must not execute code on the owner's Mac.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, macOS, ARM64, excel-xml-ci]
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          clean: true
+          persist-credentials: false
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-          cache: maven
+          overwrite-settings: false
 
-      - name: Verify
-        run: ./mvnw verify
+      - name: Run test suite
+        run: ./mvnw --batch-mode --no-transfer-progress -Dmaven.repo.local="$RUNNER_WORKSPACE/.m2/repository" test
+
+  package:
+    name: Package and CLI
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, macOS, ARM64, excel-xml-ci]
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          overwrite-settings: false
+
+      - name: Verify runnable package
+        run: ./mvnw --batch-mode --no-transfer-progress -Dmaven.repo.local="$RUNNER_WORKSPACE/.m2/repository" -DskipTests verify
+
+      - name: Check packaged CLI conversions
+        run: |
+          app_jar=target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
+          mkdir -p target/ci-smoke
+          java -Djava.awt.headless=true -jar "$app_jar" template \
+            --output target/ci-smoke/template.xlsx
+          java -Djava.awt.headless=true -jar "$app_jar" convert \
+            --direction excel-to-xml \
+            --input examples/valid-invoice-data.xlsx \
+            --output target/ci-smoke/from-excel.xml
+          java -Djava.awt.headless=true -jar "$app_jar" convert \
+            --direction xml-to-excel \
+            --input examples/valid-invoice-data.xml \
+            --output target/ci-smoke/from-xml.xlsx
+          java -Djava.awt.headless=true -jar "$app_jar" convert \
+            --direction excel-to-xml \
+            --input target/ci-smoke/from-xml.xlsx \
+            --output target/ci-smoke/round-trip.xml
+          test -s target/ci-smoke/template.xlsx
+          test -s target/ci-smoke/from-excel.xml
+          test -s target/ci-smoke/from-xml.xlsx
+          test -s target/ci-smoke/round-trip.xml
+
+  verify:
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    needs: [tests, package]
+    runs-on: [self-hosted, macOS, ARM64, excel-xml-ci]
+    timeout-minutes: 5
+    steps:
+      - name: Require tests and package checks to succeed
+        env:
+          TESTS_RESULT: ${{ needs.tests.result }}
+          PACKAGE_RESULT: ${{ needs.package.result }}
+        run: |
+          test "$TESTS_RESULT" = success
+          test "$PACKAGE_RESULT" = success
