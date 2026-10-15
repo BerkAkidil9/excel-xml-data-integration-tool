@@ -143,7 +143,7 @@ Mevcut 103 JUnit testi 21 `*Test` sınıfında Surefire ile çalışır. Compone
 
 [Verify workflow](../../.github/workflows/verify.yml), bu Mac'e kurulu iki macOS ARM64 self-hosted runner kullanır. `Tests` ve `Package and CLI` işleri paraleldir; son `verify` işi ikisinin de başarılı olmasını ister. Paket kontrolü gerçek uygulama JAR'ı ile şablon ve dönüşüm komutlarını çalıştırır. Docker, GitHub-hosted build makinesi, deployment, coverage gate veya bağımlılık açığı taraması kullanılmaz.
 
-Tetikleyiciler ve runner servis yönetimi [CI belgesinde](../development/ci.md), test kapsamı [test stratejisinde](../development/testing-strategy.md) açıklanır. [30 Eylül 2026 kanıt paketi](../cv-metrics-evidence/2026-09-30/REPORT.md) tarihsel ölçümdür; güncel CI veya coverage sonucu olarak yorumlanmaz.
+Tetikleyiciler ve runner servis yönetimi [CI belgesinde](../development/ci.md), test kapsamı [test stratejisinde](../development/testing-strategy.md) açıklanır.
 
 ## 11. Kaynaklar
 

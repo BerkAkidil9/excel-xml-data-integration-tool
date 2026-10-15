@@ -1,19 +1,60 @@
+# Maven build outputs and local dependency cache
 target/
+out/
 *.class
+*.jar
+!/.mvn/wrapper/maven-wrapper.jar
+/.m2/
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+# JVM crash reports, heap dumps, and profiling recordings
+hs_err_pid*
+replay_pid*
+*.hprof
+*.jfr
+
+# IDE workspace files
 .idea/
 *.iml
 .vscode/
 .classpath
 .project
 .settings/
+
+# Operating system metadata
 .DS_Store
+._*
 Thumbs.db
+Desktop.ini
+
+# Logs, temporary files, and editor backups
 *.log
 *.tmp
-out/
+*.bak
+*.swp
+*.swo
+*~
+
+# Local environment values and private key stores
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local measurement evidence
+/docs/cv-metrics-evidence/
+
+# Local work notes and manual checks
 AGENTS.md
-CONTRIBUTING.md
 docs/development/prompts/
-docs/references.md
-docs/roadmap.md
 manual-ui-test/

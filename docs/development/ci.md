@@ -68,7 +68,7 @@ Within the checkout used by a job:
 
 On a runner's standard installation, the checkout is at `~/.github-runners/<runner-name>/_work/excel-xml-data-integration-tool/excel-xml-data-integration-tool/`. A job may run on either runner, so consult its Actions log for the runner name before locating an output.
 
-Checkout cleanup can remove these outputs on the next job. The workflow does not upload artifacts or maintain a separate report archive. GitHub Actions retains the job logs according to the repository's retention settings; the dated [metrics evidence archive](../cv-metrics-evidence/2026-09-30/REPRODUCE.md) is independent of these CI outputs.
+Checkout cleanup can remove these outputs on the next job. The workflow does not upload artifacts or maintain a separate report archive. GitHub Actions retains the job logs according to the repository's retention settings.
 
 ## View or run CI
 

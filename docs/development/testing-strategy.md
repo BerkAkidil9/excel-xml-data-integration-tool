@@ -53,7 +53,7 @@ The final `verify` job fails if either job did not succeed. Both jobs use Java 2
 
 ## Coverage and limits
 
-The [2026-09-30 evidence report](../cv-metrics-evidence/2026-09-30/REPORT.md) records a separate JaCoCo run and conversion benchmarks. Its coverage percentages and timing results apply to that documented snapshot and dataset. Neither JaCoCo coverage nor the benchmark harness runs in the normal Maven build or CI, and no coverage threshold is enforced.
+The normal Maven build and CI do not run coverage measurements or conversion benchmarks, and no coverage threshold is enforced.
 
 Headless tests do not verify the visible Swing window, visual appearance, or accessibility. Current CI verifies macOS ARM64 execution; it is not a Windows/Linux test matrix. XML security regression tests are not a dependency vulnerability scan; Dependency-Check is not configured.
 
