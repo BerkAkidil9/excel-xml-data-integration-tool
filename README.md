@@ -6,6 +6,18 @@ A Java desktop and command-line application for converting invoice data between 
 
 *Desktop interface after converting the sample Excel workbook to XML.*
 
+![Excel-to-XML validation error showing a zero quantity and the affected invoice line](docs/images/excel-validation-error.png)
+
+*A sample workbook with a zero quantity in `InvoiceLines!E2` is rejected before XML output is written. The error identifies the affected field, record, and source location.*
+
+![Desktop interface showing a successful XML-to-Excel conversion](docs/images/xml-to-excel.png)
+
+*Successful XML-to-Excel conversion using the supplied XML example.*
+
+![Validation error showing an incorrect invoice total, the affected field, and error details](docs/images/validation-error.png)
+
+*An intentionally incorrect XML total is rejected. The error table and details identify the affected invoice and field, and the errors can be exported as CSV.*
+
 ## Features
 
 - **Bidirectional conversion:** convert Excel to XML and XML to Excel, preserving supported party, payment-account, invoice, and line-item data.
@@ -66,18 +78,6 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
 ```
 
 Choose a conversion direction, input file, and output location, then start the conversion. The interface suggests an output path, asks before overwriting an existing output, and displays validation errors for review. You can export the errors as CSV or save a blank Excel template from the interface.
-
-![Excel-to-XML validation error showing a zero quantity and the affected invoice line](docs/images/excel-validation-error.png)
-
-*A sample workbook with a zero quantity in `InvoiceLines!E2` is rejected before XML output is written. The error identifies the affected field, record, and source location.*
-
-![Desktop interface showing a successful XML-to-Excel conversion](docs/images/xml-to-excel.png)
-
-*Successful XML-to-Excel conversion using the supplied XML example.*
-
-![Validation error showing an incorrect invoice total, the affected field, and error details](docs/images/validation-error.png)
-
-*An intentionally incorrect XML total is rejected. The error table and details identify the affected invoice and field, and the errors can be exported as CSV.*
 
 ### Command line
 
