@@ -67,9 +67,6 @@ java -jar target/excel-xml-data-integration-tool-0.1.0-SNAPSHOT-app.jar
 
 Choose a conversion direction, input file, and output location, then start the conversion. The interface suggests an output path, asks before overwriting an existing output, and displays validation errors for review. You can export the errors as CSV or save a blank Excel template from the interface.
 
-<details>
-<summary>Conversion and validation examples</summary>
-
 ![Excel-to-XML validation error showing a zero quantity and the affected invoice line](docs/images/excel-validation-error.png)
 
 *A sample workbook with a zero quantity in `InvoiceLines!E2` is rejected before XML output is written. The error identifies the affected field, record, and source location.*
@@ -81,8 +78,6 @@ Choose a conversion direction, input file, and output location, then start the c
 ![Validation error showing an incorrect invoice total, the affected field, and error details](docs/images/validation-error.png)
 
 *An intentionally incorrect XML total is rejected. The error table and details identify the affected invoice and field, and the errors can be exported as CSV.*
-
-</details>
 
 ### Command line
 
